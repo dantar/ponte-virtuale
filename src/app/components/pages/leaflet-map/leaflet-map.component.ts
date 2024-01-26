@@ -1,5 +1,6 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Marker } from 'leaflet';
+import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { Map, Marker } from 'leaflet';
 import { Subscription } from 'rxjs';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
 
@@ -15,6 +16,8 @@ export class LeafletMapComponent implements OnInit {
   tracker: Subscription;
   positionMarker: Marker;
   @Input() features: MapFeature[];
+  map: Map;
+  //@ViewChild('leaflet') leafletitem: LeafletCo
 
 
   constructor(
@@ -53,6 +56,12 @@ export class LeafletMapComponent implements OnInit {
   enableGps() {
     this.leaflet.allowWatch();
     this.subscribewatch();
+  }
+
+  onMapReady(map: Map) {
+    console.log('onMapReady', this.map);
+    this.map = map;
+    this.map.fitBounds(this.getLayers().map(m => m.getLatLng()).map(ll => [ll.lat,ll.lng]));
   }
 
 }

@@ -1,7 +1,8 @@
-<div class="leaflet-map"
+<div class="leaflet-map fulldiv"
      leaflet
      [leafletOptions]="options"
-     [leafletLayers]="getLayers()">
+     [leafletLayers]="getLayers()"
+     (leafletMapReady)="onMapReady($event)">
 </div>
 <div *ngIf="!leaflet.available">
     Il tuo dispositivo non consente di individuare la tua posizione in mappa
