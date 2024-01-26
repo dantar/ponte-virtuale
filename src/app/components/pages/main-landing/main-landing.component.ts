@@ -76,9 +76,12 @@ export class MainLandingComponent implements OnInit {
   }
 
   getFirstUnreadStory(): GamePlayStory[] {
-    const unread = this.shared.play.story.filter(s => !s.published);
-    if (unread.length >= 0) {
-      return [unread[0]];
+    if (this.shared.play.story) {
+      const unread = this.shared.play.story.filter(s => !s.published);
+      console.log('unread', unread);
+      if (unread.length >= 0) {
+        return [unread[0]];
+      }
     }
     return [];
   }
@@ -101,6 +104,11 @@ export class MainLandingComponent implements OnInit {
     )
     ;
 
+  }
+
+  okStory(story: GamePlayStory) {
+    story.published = true;
+    this.shared.savePlay();
   }
 
 }

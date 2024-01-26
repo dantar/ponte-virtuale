@@ -1,32 +1,15 @@
-
-<div *ngIf="currentfeature">Feature!
-    {{ currentfeature.name }}
-    <span *ngIf="travelled">({{travelled / 1000 | number:'1.0-0'}} km)</span>
-</div>
-
 <div *ngIf="shared.scenario">
-    <h1>{{shared.scenario.id}}</h1>
+
     <div *ngIf="!shared.play" (click)="startGame()">Inizia partita</div>
+
     <ng-container *ngIf="shared.play">
-        <h2>Play {{shared.play.id}}</h2>
-        
         <app-leaflet-map *ngIf="thereIsOneMapLayer()" [features]="wrapMapFeatures(getMapOnlyLayer())"></app-leaflet-map>
-
-        <ng-container *ngFor="let story of getFirstUnreadStory()">
-            <app-svg-layer *ngIf="!story.published" [story]="story"></app-svg-layer>
-            <span (click)="story.published = true">ok</span>
+        <ng-container *ngFor="let story of shared.play.story; let first = first">
+            <div *ngIf="!story.published">
+                <app-svg-layer [story]="story"></app-svg-layer>
+                <div (click)="okStory(story)">ok</div>
+            </div>
         </ng-container>
-
-        <div *ngFor="let shown of getShownGameLayers()">
-            <h1>{{shown.layer.id}}: {{shown.layer.code}}</h1>
-            <ng-container [ngSwitch]="shown.layer.code">
-                <div *ngSwitchCase="'plain'">A layer with code plain</div>
-                <div *ngSwitchDefault>Cannot render {{shown.layer.code}}</div>
-            </ng-container>
-        </div>
-        
-        <div *ngFor="let story of shared.play.story">Read: {{story.origin.read}} Video: {{story.origin.video}}</div>
-
     </ng-container>
 
 </div>
