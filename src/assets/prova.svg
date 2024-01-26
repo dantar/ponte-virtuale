@@ -1,0 +1,10 @@
+<svg class="fullsvg" viewBox="0 0 100 100">
+    <style>
+        .provami {
+            fill: #44ff77;
+            opacity: 0.5;
+        }
+    </style>
+    <circle style="vector-effect:none;fill-opacity:1;stroke:#a05a2c;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke" 
+        class="provami" cx="50" cy="50" r="50" />
+</svg>

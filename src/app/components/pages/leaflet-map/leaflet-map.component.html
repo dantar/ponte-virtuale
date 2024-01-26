@@ -1,0 +1,12 @@
+<div class="leaflet-map"
+     leaflet
+     [leafletOptions]="options"
+     [leafletLayers]="getLayers()">
+</div>
+<div *ngIf="!leaflet.available">
+    Il tuo dispositivo non consente di individuare la tua posizione in mappa
+</div>
+<div *ngIf="leaflet.available && !leaflet.allowed" >
+    <div>Mappe disabilitate</div>
+    <div (click)="enableGps()">Abilita</div>
+</div>
