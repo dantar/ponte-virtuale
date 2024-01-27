@@ -34,4 +34,12 @@ export class ShowStoryComponent implements OnInit {
     );
   }
 
+  handleClickable(event: any) {
+    console.log('handleClickable', event);
+    const target = event.target.closest(".clickable").getAttribute('data-target');
+    if (target) {
+      this.shared.triggerAction(target);
+    }
+  }
+
 }

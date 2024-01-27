@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { SharedDataService } from 'src/app/services/shared-data.service';
 
 @Component({
   selector: 'app-render-html',
@@ -11,11 +10,11 @@ export class RenderHtmlComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Input() html: string | SafeHtml;
   @ViewChild("placeholder", {static: true}) placeholder: ElementRef;
+  @Output() clickable = new EventEmitter();
 
   listeners: (()=>void)[] = [];
 
   constructor(
-    public shared: SharedDataService,
     private renderer: Renderer2
     ) {
 
@@ -40,10 +39,7 @@ export class RenderHtmlComponent implements OnInit, OnDestroy, AfterViewInit {
       // register listener
       this.listeners.push(
         this.renderer.listen(clickable, 'click', (event) => {
-          const target = clickable.closest(".clickable").getAttribute('data-target');
-          if (target) {
-            this.shared.triggerAction(target);
-          }
+          this.clickable.emit(event);
         })
       );
     }
