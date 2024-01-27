@@ -1,0 +1,4 @@
+<div *ngIf="loading">loading...</div>
+<div *ngIf="!loading && html">
+    <app-render-html [html]="shared.getReplaceResourceUrls(html) | safe:'html'"></app-render-html>
+</div>

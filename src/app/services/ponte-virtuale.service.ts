@@ -262,7 +262,8 @@ export class GameEventTriggerAction {
 
   static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventTriggerAction);
-    return !!(event.action && rule.trigger === event.action);
+    let r = /action:(.*)/;
+    return !!(event.action && safeCapture(rule.trigger, r, 1) === event.action);
   }
 
 }

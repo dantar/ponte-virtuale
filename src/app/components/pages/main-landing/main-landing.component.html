@@ -6,7 +6,7 @@
         <app-leaflet-map *ngIf="thereIsOneMapLayer()" [features]="wrapMapFeatures(getMapOnlyLayer())"></app-leaflet-map>
         <ng-container *ngFor="let story of shared.play.story; let first = first">
             <div *ngIf="!story.published">
-                <app-svg-layer [story]="story"></app-svg-layer>
+                <app-show-story [story]="story"></app-show-story>
                 <div (click)="okStory(story)">ok</div>
             </div>
         </ng-container>
