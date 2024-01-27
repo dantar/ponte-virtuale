@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { GameRepositoryService } from 'src/app/services/game-repository.service';
 import { GamePlayStory } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
+import { Optional } from 'src/app/services/utils';
 
 @Component({
   selector: 'app-show-story',
@@ -36,10 +37,20 @@ export class ShowStoryComponent implements OnInit {
 
   handleClickable(event: any) {
     console.log('handleClickable', event);
-    const target = event.target.closest(".clickable").getAttribute('data-target');
-    if (target) {
-      this.shared.triggerAction(target);
-    }
+    const clickable = event.target.closest(".clickable");
+    Optional.ifPresent(
+      clickable.getAttribute('data-action'), 
+      (action) => this.shared.triggerAction(action)
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-close'), 
+      (close) => this.chiudi()
+    );
+  }
+
+  chiudi() {
+    this.story.published = true;
+    this.shared.savePlay();
   }
 
 }

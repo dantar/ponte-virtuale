@@ -101,18 +101,10 @@ export class MainLandingComponent implements OnInit {
   getMapOnlyLayer(): ShownGameLayer {
     return this._inflateLayer(
       this.shared.scenario.layers.filter(l => l.code == 'map')[0]
-    )
-    ;
-
-  }
-
-  okStory(story: GamePlayStory) {
-    story.published = true;
-    this.shared.savePlay();
+    );
   }
 
 }
-
 
 class ShownGameLayer {
   layer: GameLayer;
