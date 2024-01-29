@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { GameRepositoryService } from 'src/app/services/game-repository.service';
-import { GamePlayStory } from 'src/app/services/ponte-virtuale.service';
+import { GameEffectStory, GamePlayStory } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 import { Optional } from 'src/app/services/utils';
 
@@ -45,6 +45,13 @@ export class ShowStoryComponent implements OnInit {
     Optional.ifPresent(
       clickable.getAttribute('data-close'), 
       (close) => this.chiudi()
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-more'), 
+      (more) => {
+        this.chiudi();
+        this.shared.resolveEffect({story: more} as GameEffectStory);
+      }
     );
   }
 
