@@ -18,7 +18,7 @@ export class LeafletMapComponent implements OnInit {
   tracker: Subscription;
   positionMarker: Marker;
   map: Map;
-  
+
   @Input() layer: GameLayerMap;
   @Output() clickMarker = new EventEmitter();
 
@@ -46,7 +46,11 @@ export class LeafletMapComponent implements OnInit {
   }
 
   private _getGameLayerIconById(id: string): GameLayerIcon {
-    return this.layer.icons[this.layer.icons.map(i => i.id).indexOf(id)];
+    return this.layer.icons[this._getIconIndex(id)];
+  }
+
+  private _getIconIndex(id: string) {
+    return this.layer.icons.map(i => i.id).indexOf(id);
   }
 
   private _makeFeature(loc: MapLocation): MapFeature {
@@ -86,7 +90,11 @@ export class LeafletMapComponent implements OnInit {
       this.tracker = this.leaflet.watchedposition.subscribe((aa) => {
         console.log('moving...', aa);
         this.positionMarker = Leaflet.marker(new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude), {
-          icon: Leaflet.icon({iconUrl: this.shared.getGameResourceUrl(this._getGameLayerIconById('gps').url)})
+          icon: Leaflet.icon({iconUrl: this._getIconIndex('gps') >= 0
+          ? this.shared.getGameResourceUrl(this._getGameLayerIconById('gps').url)
+          : './assets/gps.svg'
+        })
+          
         });
         this.changes.detectChanges();
       });
