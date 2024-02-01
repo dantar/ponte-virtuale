@@ -1,8 +1,10 @@
-import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { Map, Marker } from 'leaflet';
 import { Subscription } from 'rxjs';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
+import { GameLayerIcon, GameLayerMap, MapLocation } from 'src/app/services/ponte-virtuale.service';
+import { SharedDataService } from 'src/app/services/shared-data.service';
 
 @Component({
   selector: 'app-leaflet-map',
@@ -15,14 +17,17 @@ export class LeafletMapComponent implements OnInit {
   options: Leaflet.MapOptions;
   tracker: Subscription;
   positionMarker: Marker;
-  @Input() features: MapFeature[];
   map: Map;
-  //@ViewChild('leaflet') leafletitem: LeafletCo
+  
+  @Input() layer: GameLayerMap;
+  @Output() clickMarker = new EventEmitter();
 
 
   constructor(
     public leaflet: LeafletSettingsService,
     private changes: ChangeDetectorRef,
+    private shared: SharedDataService,
+    private ng: NgZone,
   ) {
   }
 
@@ -32,9 +37,42 @@ export class LeafletMapComponent implements OnInit {
     this.options = this.leaflet.getMapOptions();
   }
 
+  private _getGameLayerIcon(loc: MapLocation): GameLayerIcon {
+    if (typeof loc.icon === 'string') {
+      const index = this.layer.icons.map(i => i.id).indexOf(loc.icon);
+      return this.layer.icons[index];
+    }
+    return loc.icon as GameLayerIcon;
+  }
+
+  private _getGameLayerIconById(id: string): GameLayerIcon {
+    return this.layer.icons[this.layer.icons.map(i => i.id).indexOf(id)];
+  }
+
+  private _makeFeature(loc: MapLocation): MapFeature {
+    const marker = Leaflet.marker(new Leaflet.LatLng(loc.pos ? loc.pos[0] : loc.lat, loc.pos? loc.pos[1] : loc.lon), {
+      icon: Leaflet.icon({iconUrl: loc.icon ? this.shared.getGameResourceUrl(this._getGameLayerIcon(loc).url) : './assets/pin.svg'})
+    });
+    const feature = {
+      id: loc.id, 
+      marker: marker, 
+      name: loc.name
+    } as MapFeature;
+    feature.marker.on('click', this._clickFeature(feature));
+    return feature;
+  }
+
+  private _clickFeature(feature: MapFeature): Leaflet.LeafletMouseEventHandlerFn {
+    return (event: Leaflet.LeafletMouseEvent) => {
+      this.ng.run(() => {
+        this.clickMarker.emit({feature: feature, event: event});
+      });
+    };
+  }
+
   getLayers(): Marker[] {
-    let markers = this.features
-    .map(f => f.marker)
+    const markers = this.layer.features
+    .map(f => this._makeFeature(f).marker)
     ;
     if (this.positionMarker) {
       markers.push(this.positionMarker);
@@ -47,7 +85,9 @@ export class LeafletMapComponent implements OnInit {
     if (this.leaflet.watchedposition) {
       this.tracker = this.leaflet.watchedposition.subscribe((aa) => {
         console.log('moving...', aa);
-        this.positionMarker = Leaflet.marker(new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude));
+        this.positionMarker = Leaflet.marker(new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude), {
+          icon: Leaflet.icon({iconUrl: this.shared.getGameResourceUrl(this._getGameLayerIconById('gps').url)})
+        });
         this.changes.detectChanges();
       });
     }

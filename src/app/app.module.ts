@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
@@ -13,6 +14,7 @@ import { SafePipe } from './pipes/safe.pipe';
 import { LeafletMapComponent } from './components/pages/leaflet-map/leaflet-map.component';
 import { ShowStoryComponent } from './components/pages/show-story/show-story.component';
 import { RenderHtmlComponent } from './components/gui/render-html/render-html.component';
+import { GameConfigComponent } from './components/pages/game-config/game-config.component';
 
 @NgModule({
   declarations: [
@@ -23,12 +25,14 @@ import { RenderHtmlComponent } from './components/gui/render-html/render-html.co
     SafePipe,
     LeafletMapComponent,
     ShowStoryComponent,
-    RenderHtmlComponent
+    RenderHtmlComponent,
+    GameConfigComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
+    FormsModule,
     LeafletModule
   ],
   providers: [],

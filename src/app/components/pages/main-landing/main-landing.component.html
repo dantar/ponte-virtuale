@@ -3,7 +3,7 @@
     <div *ngIf="!shared.play" (click)="startGame()">Inizia partita</div>
 
     <ng-container *ngIf="shared.play">
-        <app-leaflet-map *ngIf="thereIsOneMapLayer()" [features]="wrapMapFeatures(getMapOnlyLayer())"></app-leaflet-map>
+        <app-leaflet-map *ngIf="thereIsOneMapLayer()" [layer]="getMapOnlyLayer()" (clickMarker)="clickMarker($event)"></app-leaflet-map>
         <ng-container *ngFor="let story of shared.play.story; let first = first">
             <div *ngIf="!story.published">
                 <app-show-story [story]="story"></app-show-story>

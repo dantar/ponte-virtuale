@@ -20,7 +20,7 @@ export class SharedDataService {
     throw new Error(`Page not found {id}`);
   }
 
-  gameUrl: string = 'http://localhost/dantar/game'; // './assets/game';
+  gameUrl: string | null;
   scenario: GameScenario;
   play: GamePlay;
   currentStory: GamePlayStory | null;
@@ -44,6 +44,10 @@ export class SharedDataService {
     // LATER private analytics: GoogleAnalyticsService,
   ) { 
     // LATER this.analytics.init(environment.gaMeasurementId);
+    this.gameUrl = localStorage.getItem('ponte-virtuale-game-url');
+    if (!this.gameUrl) {
+      this.setGameUrl('http://localhost/dantar/game');
+    }
     this.pv.loadGameScenario(`${this.gameUrl}/game.json`)
     .then((scenario) => {
       // LATER this.analytics.event('start', 'app', 'init');
@@ -53,6 +57,11 @@ export class SharedDataService {
       this.loadStandardAudio();
       this.scenarioReadySource.next(scenario);
     });
+  }
+
+  public setGameUrl(arg0: string) {
+    this.gameUrl = arg0;
+    localStorage.setItem('ponte-virtuale-game-url', this.gameUrl);
   }
 
   getSettings(): {[setting:string]: string} {
@@ -95,12 +104,12 @@ export class SharedDataService {
   }
 
   savePlay() {
-    localStorage.setItem("ponte-virtuale-play", JSON.stringify(this.play));
+    localStorage.setItem(`ponte-virtuale-${this.scenario.id}`, JSON.stringify(this.play));
     this.markChanged({change: 'play-saved'});
   }
 
   deletePlay() {
-    localStorage.removeItem("ponte-virtuale-play");
+    localStorage.removeItem(`ponte-virtuale-${this.scenario.id}`);
   }
 
   restartGame() {
@@ -124,13 +133,13 @@ export class SharedDataService {
   }
 
   loadPlay() {
-    let saved = localStorage.getItem("ponte-virtuale-play");
+    let saved = localStorage.getItem(`ponte-virtuale-${this.scenario.id}`);
     if (saved) {
       let play = JSON.parse(saved);
       if (play.id && play.id === this.scenario.id) {
         this.play = play;
       } else {
-        localStorage.removeItem("ponte-virtuale-play");
+        localStorage.removeItem(`ponte-virtuale-${this.scenario.id}`);
       }
     } else {
       // LATER this.analytics.event('player', 'app', 'new');
@@ -269,10 +278,12 @@ export class SharedDataService {
     this.play.tags.forEach(tag => {
       result[`tag-${tag}`] = true;
     });
-    this.scenario.badges.forEach(badge => {
-      result[`hasbadge-${badge.badge}`] = this.play.badges.includes(badge.badge);
-      result[`nobadge-${badge.badge}`] = !this.play.badges.includes(badge.badge);
-    });
+    if (this.scenario.badges) {
+      this.scenario.badges.forEach(badge => {
+        result[`hasbadge-${badge.badge}`] = this.play.badges.includes(badge.badge);
+        result[`nobadge-${badge.badge}`] = !this.play.badges.includes(badge.badge);
+      });
+    }
     return result;
   }
 

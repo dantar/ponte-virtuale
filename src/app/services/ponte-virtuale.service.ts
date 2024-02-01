@@ -162,9 +162,9 @@ export class GameScenario {
   layers: GameLayer[];
   pages?: GamePage[];
   stories: GameEffectStoryItem[];
+  badges?: GameBadge[];
 
   rules: GameRule[];
-  badges: GameBadge[];
   options: GameOption[];
   locations: MapLocation[];
   svgmaps: SvgMap[];
@@ -617,7 +617,12 @@ export class GameLayer {
 
 export class GameLayerMap extends GameLayer {
   override code = 'map';
+  icons: GameLayerIcon[];
   features: MapLocation[];
+}
+export class GameLayerIcon {
+  id: string;
+  url: string;
 }
 
 export class GamePage {
@@ -739,7 +744,7 @@ export class MapLocation {
 
   id: string;
   name: string;
-  icon: string;
+  icon?: string | GameLayerIcon;
   icons: [{condition: GameCondition, icon: string}];
   pos?: number[];
   lat: number; // obsolete?
