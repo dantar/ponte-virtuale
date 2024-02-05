@@ -793,6 +793,11 @@ export class MapLocation {
   condition: GameCondition;
   description: string;
   anchor: number[];
+
+}
+
+export class MapFeaturePolyline extends MapLocation{
+  polyline: string[];
 }
 
 export class SvgMap {

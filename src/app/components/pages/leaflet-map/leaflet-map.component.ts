@@ -1,9 +1,9 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { Map, Marker } from 'leaflet';
+import { GeoJSONOptions, Map, Marker } from 'leaflet';
 import { Subscription } from 'rxjs';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
-import { GameLayerIcon, GameLayerMap, MapLocation } from 'src/app/services/ponte-virtuale.service';
+import { GameLayerIcon, GameLayerMap, MapFeaturePolyline, MapLocation } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 
 @Component({
@@ -56,9 +56,11 @@ export class LeafletMapComponent implements OnInit {
   private _makeFeature(loc: MapLocation): MapFeature {
     const markeropts: Leaflet.MarkerOptions = {};
     if (loc.icon) {
-      markeropts.icon = Leaflet.icon({iconUrl: this.shared.getGameResourceUrl(this._getGameLayerIcon(loc).url)});
+      markeropts.icon = Leaflet.icon({
+        iconUrl: this.shared.getGameResourceUrl(this._getGameLayerIcon(loc).url)
+      });
     } else {
-      markeropts.icon = Leaflet.icon({iconUrl: './assets/pin.svg'});
+      markeropts.icon = Leaflet.icon({iconUrl: './assets/pin.svg', iconAnchor: [15, 15]});
     }
     const marker = Leaflet.marker(new Leaflet.LatLng(loc.pos ? loc.pos[0] : loc.lat, loc.pos? loc.pos[1] : loc.lon), markeropts);
     const feature = {
@@ -80,6 +82,7 @@ export class LeafletMapComponent implements OnInit {
 
   getLayers(): Marker[] {
     const markers = this.layer.features
+    .filter(f => f.pos)
     .map(f => this._makeFeature(f).marker)
     ;
     if (this.positionMarker) {
@@ -114,6 +117,27 @@ export class LeafletMapComponent implements OnInit {
     console.log('onMapReady', this.map);
     this.map = map;
     this.map.fitBounds(this.getLayers().map(m => m.getLatLng()).map(ll => [ll.lat,ll.lng]));
+
+    var myStyle = {
+        "color": "#ff7800",
+        "weight": 12,
+        "opacity": 0.65
+    };
+    const myLines = this.layer.features
+    .map(f => f as MapFeaturePolyline)
+    .filter(f => f.polyline)
+    .map(f => (
+      {
+        "type": "LineString", 
+        "coordinates": f.polyline
+          .map(id => this.layer.features[this.layer.features.map(f=>f.id).indexOf(id)].pos)
+          .map(p => p as number[])
+          .map(p => [p[1], p[0]])
+      }
+      )
+    );
+    const gjlayer = Leaflet.geoJSON(myLines as GeoJSON.GeoJsonObject[], myStyle as GeoJSONOptions).addTo(map);
+
   }
 
 }
