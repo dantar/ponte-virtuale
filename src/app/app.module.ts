@@ -15,6 +15,7 @@ import { LeafletMapComponent } from './components/pages/leaflet-map/leaflet-map.
 import { ShowStoryComponent } from './components/pages/show-story/show-story.component';
 import { RenderHtmlComponent } from './components/gui/render-html/render-html.component';
 import { GameConfigComponent } from './components/pages/game-config/game-config.component';
+import { ShowPageComponent } from './components/pages/show-page/show-page.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { GameConfigComponent } from './components/pages/game-config/game-config.
     LeafletMapComponent,
     ShowStoryComponent,
     RenderHtmlComponent,
-    GameConfigComponent
+    GameConfigComponent,
+    ShowPageComponent
   ],
   imports: [
     BrowserModule,

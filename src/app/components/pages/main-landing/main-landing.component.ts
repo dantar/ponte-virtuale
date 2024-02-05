@@ -39,12 +39,4 @@ export class MainLandingComponent implements OnInit {
     this.shared.startGame();
   }
 
-  thereIsOneMapLayer(): boolean {
-    return this.shared.scenario.layers.filter(l => l.code == 'map').length > 0;
-  }
-
-  getMapOnlyLayer(): GameLayerMap {
-    return this.shared.scenario.layers.filter(l => l.code == 'map')[0] as GameLayerMap;
-  }
-
 }

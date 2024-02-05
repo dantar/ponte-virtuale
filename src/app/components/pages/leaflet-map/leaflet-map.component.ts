@@ -54,9 +54,13 @@ export class LeafletMapComponent implements OnInit {
   }
 
   private _makeFeature(loc: MapLocation): MapFeature {
-    const marker = Leaflet.marker(new Leaflet.LatLng(loc.pos ? loc.pos[0] : loc.lat, loc.pos? loc.pos[1] : loc.lon), {
-      icon: Leaflet.icon({iconUrl: loc.icon ? this.shared.getGameResourceUrl(this._getGameLayerIcon(loc).url) : './assets/pin.svg'})
-    });
+    const markeropts: Leaflet.MarkerOptions = {};
+    if (loc.icon) {
+      markeropts.icon = Leaflet.icon({iconUrl: this.shared.getGameResourceUrl(this._getGameLayerIcon(loc).url)});
+    } else {
+      markeropts.icon = Leaflet.icon({iconUrl: './assets/pin.svg'});
+    }
+    const marker = Leaflet.marker(new Leaflet.LatLng(loc.pos ? loc.pos[0] : loc.lat, loc.pos? loc.pos[1] : loc.lon), markeropts);
     const feature = {
       id: loc.id, 
       marker: marker, 

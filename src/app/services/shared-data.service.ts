@@ -10,7 +10,7 @@ import { ButtonsMenuService } from './buttons-menu.service';
 })
 export class SharedDataService {
 
-  findPage(id: string): GamePage {
+  getPage(id: string): GamePage {
     if (this.scenario && this.scenario.pages) {
       const index = this.scenario.pages.map(p => p.id).indexOf(id);
       if (index >= 0) {
@@ -25,6 +25,8 @@ export class SharedDataService {
   play: GamePlay;
   currentStory: GamePlayStory | null;
   options: GameOption | null;
+
+  currentPage: GamePage;
 
   private playChangedSource = new Subject<PlayChange>();
   playChangedOb = this.playChangedSource.asObservable();
@@ -205,6 +207,12 @@ export class SharedDataService {
 
   triggerAction(action: string) {
     this.pv.trigger(this.scenario, this.play, action);
+    this.updateGui();
+    this.savePlay();
+  }
+
+  showPage(page: string) {
+    this.pv.showPage(this.scenario, this.play, page);
     this.updateGui();
     this.savePlay();
   }

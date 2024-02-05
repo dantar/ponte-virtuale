@@ -14,6 +14,7 @@ export class PonteVirtualeService {
 
   runScenarioRules(scenario: GameScenario, play: GamePlay) {
     console.log("runScenarioRules", scenario, play);
+    // TODO: make a rules runner, with session variables and recording effects to apply at the end of the rules run
     scenario.rules.forEach(rule => this.checkAndRunRule(rule, scenario, play));
   }
 
@@ -26,7 +27,8 @@ export class PonteVirtualeService {
       GameEventTooFar.validEvent(rule, scenario, play) ||
       GameEventSuccessfulChallenge.validEvent(rule, scenario, play) ||
       GameEventFailedChallenge.validEvent(rule, scenario, play) ||
-      GameEventQrCode.validEvent(rule, scenario, play)
+      GameEventQrCode.validEvent(rule, scenario, play) || 
+      GameEventShowPage.validEvent(rule, scenario, play)
       ) {
         if(!rule.condition || this.checkCondition(rule.condition, play, scenario)) {
           if (rule.effect) {
@@ -52,6 +54,16 @@ export class PonteVirtualeService {
   trigger(scenario: GameScenario, play: GamePlay, action: string) {
     play.event = new GameEventTriggerAction(action);
     this.runScenarioRules(scenario, play);
+  }
+
+  showPage(scenario: GameScenario, play: GamePlay, page: string) {
+    play.event = new GameEventShowPage(page);
+    this.runScenarioRules(scenario, play);
+    const lastPage = play.currentPage;
+    if (play.currentPage === lastPage) {
+      // auto change page if not changed by a rule
+      play.currentPage = page;
+    }
   }
 
   successfulChallenge(scenario: GameScenario, play: GamePlay) {
@@ -159,7 +171,8 @@ export class PonteVirtualeService {
 export class GameScenario {
 
   id: string;
-  layers: GameLayer[];
+  map: GameLayerMap
+  //layers: GameLayer[];
   pages?: GamePage[];
   stories: GameEffectStoryItem[];
   badges?: GameBadge[];
@@ -171,7 +184,6 @@ export class GameScenario {
   audio: AudioSource[];
   buttons: MapButton[];
   challenges: GameChallenge[];
-  map: MapInitData;
   credits: string;
   layout: string;
   fullscreen: string;
@@ -264,6 +276,22 @@ export class GameEventTriggerAction {
     let event = (play.event as GameEventTriggerAction);
     let r = /action:(.*)/;
     return !!(event.action && safeCapture(rule.trigger, r, 1) === event.action);
+  }
+
+}
+
+export class GameEventShowPage {
+
+  page: string;
+
+  constructor(page: string) {
+    this.page = page;
+  }
+
+  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+    let event = (play.event as GameEventShowPage);
+    let r = /page:(.*)/;
+    return !!(event.page && safeCapture(rule.trigger, r, 1) === event.page);
   }
 
 }
@@ -548,6 +576,17 @@ export class GameEffectGoToLocation extends GameEffect {
 }
 GameEffect.register(GameEffectGoToLocation);
 
+export class GameEffectShowPage extends GameEffect {
+  page: string;
+  static override run(effect: GameEffectShowPage, scenario: GameScenario, play: GamePlay) {
+    play.currentPage = effect.page;
+  }
+  static override valid(effect: GameEffectShowPage) {
+    return effect.page ? true : false;
+  }
+}
+GameEffect.register(GameEffectShowPage);
+
 export class GameEffectRoute extends GameEffect {
   route: string[];
   static override run(effect: GameEffectRoute, scenario: GameScenario, play: GamePlay) {
@@ -584,7 +623,7 @@ GameEffect.register(GameEffectOptions);
 export class GamePlay {
   
   id: string;
-  layers: string[];
+  currentPage?: string;
 
   story: GamePlayStory[];
   badges: string[];
@@ -612,11 +651,12 @@ export class GamePlay {
 export class GameLayer {
   id: string;
   code: string;
-  page: GamePage | string;
+  page?: GamePage | string;
 }
 
 export class GameLayerMap extends GameLayer {
   override code = 'map';
+  conf?: MapInitData;
   icons: GameLayerIcon[];
   features: MapLocation[];
 }
