@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
@@ -15,7 +15,8 @@ export class RenderHtmlComponent implements OnInit, OnDestroy, AfterViewInit {
   listeners: (()=>void)[] = [];
 
   constructor(
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private ng: NgZone,
     ) {
 
   }
@@ -39,7 +40,9 @@ export class RenderHtmlComponent implements OnInit, OnDestroy, AfterViewInit {
       // register listener
       this.listeners.push(
         this.renderer.listen(clickable, 'click', (event) => {
-          this.clickable.emit(event);
+          this.ng.run(() => {
+            this.clickable.emit(event);
+          });
         })
       );
     }

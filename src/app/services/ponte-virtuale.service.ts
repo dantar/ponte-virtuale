@@ -503,7 +503,6 @@ export class GameEffectStory extends GameEffect {
   story: string | GameEffectStoryItem[];
   static override run(effect: GameEffectStory, scenario: GameScenario, play: GamePlay) {
     if (typeof effect.story === 'string') {
-      console.log('GameEffectStory', play);
       play.story.push(({origin: GameScenario.getStory(scenario, effect.story as string), published: false} as GamePlayStory));
     } else {
       for (let index = 0; index < effect.story.length; index++) {
@@ -579,6 +578,7 @@ GameEffect.register(GameEffectGoToLocation);
 export class GameEffectShowPage extends GameEffect {
   page: string;
   static override run(effect: GameEffectShowPage, scenario: GameScenario, play: GamePlay) {
+    console.log('GameEffectPage', play);
     play.currentPage = effect.page;
   }
   static override valid(effect: GameEffectShowPage) {
