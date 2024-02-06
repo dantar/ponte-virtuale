@@ -6,6 +6,7 @@ import { GameConfigComponent } from './components/pages/game-config/game-config.
 const routes: Routes = [
   {path:'', component: MainLandingComponent},
   {path:'config', component: GameConfigComponent},
+  {path:'play/:b64url', component: GameConfigComponent},
 ];
 
 @NgModule({

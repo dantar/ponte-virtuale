@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
-import { GameLayerMap, GamePlayStory } from 'src/app/services/ponte-virtuale.service';
+import { GamePlayStory } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 
 @Component({
