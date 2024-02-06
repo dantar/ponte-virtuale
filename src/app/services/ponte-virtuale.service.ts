@@ -663,6 +663,8 @@ export class GameLayerMap extends GameLayer {
 export class GameLayerIcon {
   id: string;
   url: string;
+  size?: number[];
+  anchor?: number[];
 }
 
 export class GamePage {

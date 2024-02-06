@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { GeoJSONOptions, Map, Marker } from 'leaflet';
+import { GeoJSONOptions, Map, Marker, PointExpression } from 'leaflet';
 import { Subscription } from 'rxjs';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
 import { GameLayerIcon, GameLayerMap, MapFeaturePolyline, MapLocation } from 'src/app/services/ponte-virtuale.service';
@@ -56,8 +56,11 @@ export class LeafletMapComponent implements OnInit {
   private _makeFeature(loc: MapLocation): MapFeature {
     const markeropts: Leaflet.MarkerOptions = {};
     if (loc.icon) {
+      const i = this._getGameLayerIcon(loc);
       markeropts.icon = Leaflet.icon({
-        iconUrl: this.shared.getGameResourceUrl(this._getGameLayerIcon(loc).url)
+        iconUrl: this.shared.getGameResourceUrl(i.url), 
+        iconSize: i.size as PointExpression || [30,30], 
+        iconAnchor: i.anchor as PointExpression || [15, 15]
       });
     } else {
       markeropts.icon = Leaflet.icon({iconUrl: './assets/pin.svg', iconAnchor: [15, 15]});
