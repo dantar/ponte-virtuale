@@ -47,18 +47,23 @@ export class SharedDataService {
   ) { 
     // LATER this.analytics.init(environment.gaMeasurementId);
     this.gameUrl = localStorage.getItem('ponte-virtuale-game-url');
-    this.initGame();
+    if (this.gameUrl) {
+      //this.initGame();
+    }
   }
   
   initGame() {
     if (this.gameUrl) {
+      console.log("Loading game scenario", this.gameUrl);
       this.pv.loadGameScenario(`${this.gameUrl}/game.json`)
       .then((scenario) => {
+        console.log("Game scenario successfully loaded", scenario);
         // LATER this.analytics.event('start', 'app', 'init');
         this.scenario = scenario;
         this.loadButtons();
         this.loadPlay();
         this.loadStandardAudio();
+        console.log("Game scenario ready");
         this.scenarioReadySource.next(scenario);
       });
     }
@@ -93,6 +98,7 @@ export class SharedDataService {
   }
 
   startGame() {
+    console.log("Starting a new game for scenario", this.scenario);
     this.play = new GamePlay();
     this.play.id = this.scenario.id;
     this.pv.start(this.scenario, this.play);
@@ -141,12 +147,15 @@ export class SharedDataService {
     let saved = localStorage.getItem(`ponte-virtuale-${this.scenario.id}`);
     if (saved) {
       let play = JSON.parse(saved);
+      console.log("Play found in local storage", play);
       if (play.id && play.id === this.scenario.id) {
         this.play = play;
       } else {
         localStorage.removeItem(`ponte-virtuale-${this.scenario.id}`);
       }
     } else {
+      console.log("Play not found in local storage, starting a new game");
+      this.startGame();
       // LATER this.analytics.event('player', 'app', 'new');
     }
   }
@@ -285,7 +294,9 @@ export class SharedDataService {
 
   statusCssClasses(): { [cl: string]: boolean; } {
     // to be used with [ngClass]
-    let result: {[cl: string]: boolean} = {};
+    let result: {[cl: string]: boolean} = {
+      'pv-autoclasses': true,
+    };
     this.play.tags.forEach(tag => {
       result[`tag-${tag}`] = true;
     });

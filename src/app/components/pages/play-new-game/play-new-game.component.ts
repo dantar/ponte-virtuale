@@ -23,19 +23,13 @@ export class PlayNewGameComponent implements OnInit {
       this.loading = false;
       if (p['b64url']) {
         const gameUrl = atob(p['b64url']);
-        console.log(gameUrl);
-        if (!this.shared.gameUrl || this.shared.gameUrl != gameUrl ) {
+        console.log("Now playing", gameUrl);
+        if (!this.shared.gameUrl) {
           this.shared.setGameUrl(gameUrl);
-          this.shared.initGame();
-          if (! this.shared.play) {
-            this.shared.startGame();
-          }
         }
-        this.router.navigate(['']);
+        this.shared.initGame();
       }
     });
   }
 
-
-  
 }
