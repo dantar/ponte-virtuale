@@ -30,10 +30,15 @@ export class LeafletSettingsService {
   setAllowed(allowed: boolean) {
     this.allowed = allowed;
     localStorage.setItem('leaflet-allowed', String(this.allowed));
+    this.initObservables();
   }
 
   allowWatch() {
-    this.allowed = this.available;
+    this.setAllowed(this.available);
+    this.initObservables();
+  }
+
+  private initObservables() {
     const service = this;
     if (this.allowed) {
       this.watchedposition = new Observable(observer => {

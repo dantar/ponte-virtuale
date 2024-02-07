@@ -17,7 +17,7 @@ export class SharedDataService {
         return this.scenario.pages[index];
       }
     }
-    throw new Error(`Page not found {id}`);
+    throw new Error(`Page not found ${id}`);
   }
 
   gameUrl: string | null;
