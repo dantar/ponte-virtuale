@@ -16,6 +16,7 @@ import { ShowStoryComponent } from './components/pages/show-story/show-story.com
 import { RenderHtmlComponent } from './components/gui/render-html/render-html.component';
 import { GameConfigComponent } from './components/pages/game-config/game-config.component';
 import { ShowPageComponent } from './components/pages/show-page/show-page.component';
+import { PlayNewGameComponent } from './components/pages/play-new-game/play-new-game.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { ShowPageComponent } from './components/pages/show-page/show-page.compon
     ShowStoryComponent,
     RenderHtmlComponent,
     GameConfigComponent,
-    ShowPageComponent
+    ShowPageComponent,
+    PlayNewGameComponent
   ],
   imports: [
     BrowserModule,

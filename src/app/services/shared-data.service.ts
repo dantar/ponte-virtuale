@@ -47,18 +47,21 @@ export class SharedDataService {
   ) { 
     // LATER this.analytics.init(environment.gaMeasurementId);
     this.gameUrl = localStorage.getItem('ponte-virtuale-game-url');
-    if (!this.gameUrl) {
-      this.setGameUrl('http://localhost/dantar/game');
+    this.initGame();
+  }
+  
+  initGame() {
+    if (this.gameUrl) {
+      this.pv.loadGameScenario(`${this.gameUrl}/game.json`)
+      .then((scenario) => {
+        // LATER this.analytics.event('start', 'app', 'init');
+        this.scenario = scenario;
+        this.loadButtons();
+        this.loadPlay();
+        this.loadStandardAudio();
+        this.scenarioReadySource.next(scenario);
+      });
     }
-    this.pv.loadGameScenario(`${this.gameUrl}/game.json`)
-    .then((scenario) => {
-      // LATER this.analytics.event('start', 'app', 'init');
-      this.scenario = scenario;
-      this.loadButtons();
-      this.loadPlay();
-      this.loadStandardAudio();
-      this.scenarioReadySource.next(scenario);
-    });
   }
 
   public setGameUrl(arg0: string) {
