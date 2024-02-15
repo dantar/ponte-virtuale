@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { GeoJSONOptions } from 'leaflet';
 import { Observable, lastValueFrom } from 'rxjs';
 
 @Injectable({
@@ -800,6 +801,7 @@ export class MapLocation {
 
 export class MapFeaturePolyline extends MapLocation{
   polyline: string[];
+  style?: GeoJSONOptions;
 }
 
 export class SvgMap {

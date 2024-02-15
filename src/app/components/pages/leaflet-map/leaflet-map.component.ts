@@ -121,25 +121,24 @@ export class LeafletMapComponent implements OnInit {
     this.map = map;
     this.map.fitBounds(this.getLayers().map(m => m.getLatLng()).map(ll => [ll.lat,ll.lng]));
 
-    var myStyle = {
-        "color": "#ff7800",
-        "weight": 12,
-        "opacity": 0.65
-    };
-    const myLines = this.layer.features
+    this.layer.features
     .map(f => f as MapFeaturePolyline)
     .filter(f => f.polyline)
-    .map(f => (
-      {
+    .forEach(f => {
+      const mylines = {
         "type": "LineString", 
         "coordinates": f.polyline
           .map(id => this.layer.features[this.layer.features.map(f=>f.id).indexOf(id)].pos)
           .map(p => p as number[])
           .map(p => [p[1], p[0]])
-      }
-      )
-    );
-    const gjlayer = Leaflet.geoJSON(myLines as GeoJSON.GeoJsonObject[], myStyle as GeoJSONOptions).addTo(map);
+      } as GeoJSON.GeoJsonObject;
+      const myStyle = f.style || {
+          "color": "#ff7800",
+          "weight": 12,
+          "opacity": 0.65
+      };
+      const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions).addTo(map);
+    });
 
   }
 
