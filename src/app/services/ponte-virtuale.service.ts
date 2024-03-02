@@ -562,12 +562,12 @@ export class GameEffectChallenge extends GameEffect {
 GameEffect.register(GameEffectChallenge);
 
 export class GameEffectGoToLocation extends GameEffect {
-  location: string;
+  zoomto: string;
   static override run(effect: GameEffectGoToLocation, scenario: GameScenario, play: GamePlay) {
-    play.zoomTo = effect.location;
+    play.zoomTo = effect.zoomto;
   }
   static override valid(effect: GameEffectGoToLocation) {
-    return effect.location ? true : false;
+    return effect.zoomto ? true : false;
   }
 }
 GameEffect.register(GameEffectGoToLocation);
