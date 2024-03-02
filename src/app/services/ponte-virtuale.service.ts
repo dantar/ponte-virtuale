@@ -564,11 +564,7 @@ GameEffect.register(GameEffectChallenge);
 export class GameEffectGoToLocation extends GameEffect {
   location: string;
   static override run(effect: GameEffectGoToLocation, scenario: GameScenario, play: GamePlay) {
-    scenario.locations
-    .filter(l => l.id === effect.location)
-    .forEach(l => {
-      play.zoomTo = effect.location;
-    });
+    play.zoomTo = effect.location;
   }
   static override valid(effect: GameEffectGoToLocation) {
     return effect.location ? true : false;

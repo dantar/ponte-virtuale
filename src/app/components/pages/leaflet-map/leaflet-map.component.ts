@@ -18,6 +18,7 @@ export class LeafletMapComponent implements OnInit {
   tracker: Subscription;
   positionMarker: Marker;
   map: Map;
+  featuresById: {[id: string]: MapFeature};
 
   @Input() layer: GameLayerMap;
   @Output() clickMarker = new EventEmitter();
@@ -32,9 +33,26 @@ export class LeafletMapComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.featuresById = {};
     console.log('map is reset');
     this.subscribewatch();
+    this.subscribezoom();
     this.options = this.leaflet.getMapOptions();
+  }
+
+  subscribezoom() {
+    this.shared.zoomMapToObs.subscribe(location => this.zoomToFeature(location));
+  }
+
+  zoomToFeature(location: string): void {
+    const map = this.map;
+    const feature = this.featuresById[location];
+    if (feature) {
+      const marker = feature.marker;
+      var latLngs = [ marker.getLatLng() ];
+      var markerBounds = Leaflet.latLngBounds(latLngs);
+      map.fitBounds(markerBounds);
+    }
   }
 
   private _getGameLayerIcon(loc: MapLocation): GameLayerIcon {
@@ -72,6 +90,7 @@ export class LeafletMapComponent implements OnInit {
       name: loc.name
     } as MapFeature;
     feature.marker.on('click', this._clickFeature(feature));
+    this.featuresById[loc.id] = feature;
     return feature;
   }
 

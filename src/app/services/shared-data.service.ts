@@ -33,6 +33,9 @@ export class SharedDataService {
   private scenarioReadySource = new Subject<GameScenario>();
   scenarioReadyObs = this.scenarioReadySource.asObservable();
 
+  private zoomMapToSource = new Subject<string>();
+  zoomMapToObs = this.zoomMapToSource.asObservable();
+
   markChanged(change: PlayChange) {
     this.playChangedSource.next(change);
   }
@@ -174,6 +177,7 @@ export class SharedDataService {
   }
 
   updateGui() {
+    console.log('updateGui');
     this.findNextStory();
     this.findZoomTo();
     this.options = this.getOptions();
@@ -185,7 +189,8 @@ export class SharedDataService {
 
   findZoomTo() {
     if (this.play.zoomTo) {
-      this.router.navigate(['mappa']);
+      this.zoomMapToSource.next(this.play.zoomTo);
+      this.play.zoomTo = null;
     }
   }
 
