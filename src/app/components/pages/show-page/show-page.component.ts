@@ -51,6 +51,10 @@ export class ShowPageComponent implements OnInit, OnChanges {
       console.log('handleClickable', event);
       const clickable = event.target.closest(".clickable");
       Optional.ifPresent(
+        clickable.getAttribute('data-zoomto'), 
+        (zoomto) => this.shared.fireZoomTo(zoomto)
+      );
+      Optional.ifPresent(
         clickable.getAttribute('data-action'), 
         (action) => this.shared.triggerAction(action)
       );

@@ -139,11 +139,11 @@ export class SharedDataService {
   }
 
   setZoomTo(id: string) {
-    this.scenario.locations
-    .filter(l => l.id === id)
-    .forEach(l => {
-      this.play.zoomTo = id;
-    })
+    this.play.zoomTo = id;
+  }
+
+  fireZoomTo(id: string) {
+    this.zoomMapToSource.next(id);
   }
 
   loadPlay() {
