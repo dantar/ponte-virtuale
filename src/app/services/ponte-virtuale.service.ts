@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { GeoJSONOptions } from 'leaflet';
 import { Observable, lastValueFrom } from 'rxjs';
+import { IfTypeOf } from './if-type-of.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,7 @@ export class PonteVirtualeService {
   checkAndRunRule(rule: GameRule, scenario: GameScenario, play: GamePlay): void {
     if (
       !rule.trigger || 
+      GameEventSubmitForm.validEvent(rule, scenario, play) ||
       GameEventTriggerAction.validEvent(rule, scenario, play) ||
       GameEventStart.validEvent(rule, scenario, play) ||
       GameEventVisit.validEvent(rule, scenario, play) ||
@@ -32,13 +34,38 @@ export class PonteVirtualeService {
       GameEventShowPage.validEvent(rule, scenario, play)
       ) {
         if(!rule.condition || this.checkCondition(rule.condition, play, scenario)) {
-          if (rule.effect) {
-            this.applyEffect(rule.effect, scenario, play);
-          }
-          if (rule.rules) {
-            rule.rules.forEach(sub => this.checkAndRunRule(sub, scenario, play));
-          }
+          this.runAllRuleEffects(rule, scenario, play);
         }
+    }
+  }
+
+  private runAllRuleEffects(rule: GameRule, scenario: GameScenario, play: GamePlay) {
+    if (rule.effect) {
+      this.runRuleEffect(rule, scenario, play);
+    }
+    if (rule.switch) {
+      this.runRuleSwitch(rule, scenario, play);
+    }
+    if (rule.rules) {
+      rule.rules.forEach(sub => this.checkAndRunRule(sub, scenario, play));
+    }
+  }
+  
+  private runRuleSwitch(rule: GameRule, scenario: GameScenario, play: GamePlay) {
+    for (let index = 0; index < rule.switch.length; index++) {
+      const effect = rule.switch[index];
+      if (!effect.condition || this.checkCondition(effect.condition, play, scenario)) {
+        this.applyEffect(effect, scenario, play);
+        break;
+      } 
+    }
+  }
+
+  private runRuleEffect(rule: GameRule, scenario: GameScenario, play: GamePlay) {
+    if (Array.isArray(rule.effect)) {
+      rule.effect.forEach(effect => this.applyEffect(effect, scenario, play));
+    } else {
+      this.applyEffect(rule.effect, scenario, play);
     }
   }
 
@@ -54,6 +81,11 @@ export class PonteVirtualeService {
 
   trigger(scenario: GameScenario, play: GamePlay, action: string) {
     play.event = new GameEventTriggerAction(action);
+    this.runScenarioRules(scenario, play);
+  }
+
+  gameEvent(scenario: GameScenario, play: GamePlay, event: GameEvent) {
+    play.event = event;
     this.runScenarioRules(scenario, play);
   }
 
@@ -94,7 +126,11 @@ export class PonteVirtualeService {
 
   apply(rule: GameRule, scenario: GameScenario, play: GamePlay): void {
     if(this.checkCondition(rule.condition, play, scenario)) {
-      this.applyEffect(rule.effect, scenario, play)
+      if (Array.isArray(rule.effect)) {
+        rule.effect.forEach(effect => this.applyEffect(effect, scenario, play));
+      } else {
+        this.applyEffect(rule.effect, scenario, play);
+      }
     }
   }
 
@@ -102,6 +138,9 @@ export class PonteVirtualeService {
     let check: boolean = true;
     if(GameRule.validCondition(condition)) {
       // DEBT refactor this so that each class takes care of its own code
+      if (GameConditionFormValue.valid(condition as GameConditionFormValue)) {
+        check = check && GameConditionFormValue.check(condition as GameConditionFormValue, play);
+      }
       if (GameConditionBadge.valid(condition as GameConditionBadge)) {
         check = check && GameConditionBadge.check(condition as GameConditionBadge, play);
       }
@@ -345,10 +384,28 @@ export class GameEventQrCode {
 
 }
 
+export class GameEventSubmitForm {
+
+  tag: string;
+  form: {[id: string]: any};
+
+  constructor() {
+    this.form = {};
+  }
+
+  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+    let event = (play.event as GameEventSubmitForm);
+    let r = /submit:(.*)/;
+    return !!(event.tag && safeCapture(rule.trigger, r, 1) === event.tag);
+  }
+
+}
+
 export class GameRule {
 
   trigger: string;
-  effect: GameEffect;
+  effect: GameEffect | GameEffect[];
+  switch: GameEffect[];
   condition: GameCondition;
   rules: GameRule[];
 
@@ -361,6 +418,23 @@ export class GameCondition {
   
   nobadge: string;
   enabled: boolean;
+}
+
+export class GameConditionFormValue extends GameCondition {
+
+  formvalue: string;
+  equals?: string;
+
+  static valid(condition: GameConditionFormValue) {
+    return condition.formvalue ? true : false;
+  }
+
+  static check(condition: GameConditionFormValue, play: GamePlay) : boolean {
+    const event = play.event as GameEventSubmitForm;
+    console.log(event && event.form && event.form[condition.formvalue]);
+    return event.form && event.form[condition.formvalue] == condition.equals;
+  }
+
 }
 
 export class GameConditionBadge extends GameCondition {
@@ -503,14 +577,10 @@ export class GameEffect {
 export class GameEffectStory extends GameEffect {
   story: string | GameEffectStoryItem[];
   static override run(effect: GameEffectStory, scenario: GameScenario, play: GamePlay) {
-    if (typeof effect.story === 'string') {
-      play.story.push(({origin: GameScenario.getStory(scenario, effect.story as string), published: false} as GamePlayStory));
-    } else {
-      for (let index = 0; index < effect.story.length; index++) {
-        const element = effect.story[index];      
-        play.story.push(({origin: element, published: false} as GamePlayStory));
-      }
-    }
+    new IfTypeOf()
+    .ifString((s) => play.story.push(({origin: GameScenario.getStory(scenario, s), published: false} as GamePlayStory)))
+    .ifArray<GameEffectStoryItem>( (a) => a.forEach(element => play.story.push(({origin: element, published: false} as GamePlayStory))) )
+    .of(effect.story);
   }
   static override valid(effect: GameEffectStory) {
     return effect.story ? true : false;
@@ -575,7 +645,6 @@ GameEffect.register(GameEffectGoToLocation);
 export class GameEffectShowPage extends GameEffect {
   page: string;
   static override run(effect: GameEffectShowPage, scenario: GameScenario, play: GamePlay) {
-    console.log('GameEffectPage', play);
     play.currentPage = effect.page;
   }
   static override valid(effect: GameEffectShowPage) {
@@ -596,12 +665,24 @@ export class GameEffectRoute extends GameEffect {
 GameEffect.register(GameEffectRoute);
 
 export class GameEffectScore extends GameEffect {
- score: number;
+  score: number | {variable: string, value: number};
+  variable: number | {variable: string, value: number|string};
   static override run(effect: GameEffectScore, scenario: GameScenario, play: GamePlay) {
-    play.score += effect.score;
+    new IfTypeOf()
+    .ifInstanceOf<{variable: string, value: number}>((o) => {
+      new IfTypeOf()
+      .ifNumber((n) => play.variables[o.variable] = o.value + n)
+      .of(play.variables[o.variable]);
+    })
+    .ifNumber((n) => play.score += n)
+    .of(effect.score);
+    new IfTypeOf()
+    .ifInstanceOf<{variable: string, value: number|string}>((o) => play.variables[o.variable] = o.value)
+    .ifNumber((n) => play.score = n)
+    .of(effect.variable);
   }
   static override valid(effect: GameEffectScore) {
-    return effect.score ? true : false;
+    return (typeof effect.score != 'undefined') || (typeof effect.variable != 'undefined') ? true : false;
   }
 }
 GameEffect.register(GameEffectScore);
@@ -626,6 +707,7 @@ export class GamePlay {
   badges: string[];
   options: string[];
   score: number;
+  variables: {[code: string]: number|string};
   zoomTo: string | null;
   tags: string[];
   event: GameEvent;

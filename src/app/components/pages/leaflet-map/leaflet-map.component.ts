@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
-import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { GeoJSONOptions, Map, Marker, PointExpression } from 'leaflet';
 import { Subscription } from 'rxjs';
+import { IfTypeOf } from 'src/app/services/if-type-of.service';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
 import { GameLayerIcon, GameLayerMap, MapFeaturePolyline, MapLocation } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
@@ -56,11 +56,12 @@ export class LeafletMapComponent implements OnInit {
   }
 
   private _getGameLayerIcon(loc: MapLocation): GameLayerIcon {
-    if (typeof loc.icon === 'string') {
-      const index = this.layer.icons.map(i => i.id).indexOf(loc.icon);
-      return this.layer.icons[index];
-    }
-    return loc.icon as GameLayerIcon;
+    const found: GameLayerIcon[] = [];
+    new IfTypeOf()
+    .ifString( (s) => found.push(this._getGameLayerIconById(s)) )
+    .ifObject( (o) => found.push(o as GameLayerIcon) )
+    .of(loc.icon);
+    return found.pop() as GameLayerIcon;
   }
 
   private _getGameLayerIconById(id: string): GameLayerIcon {
@@ -118,13 +119,22 @@ export class LeafletMapComponent implements OnInit {
     if (this.leaflet.watchedposition) {
       this.tracker = this.leaflet.watchedposition.subscribe((aa) => {
         console.log('moving...', aa);
-        this.positionMarker = Leaflet.marker(new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude), {
-          icon: Leaflet.icon({iconUrl: this._getIconIndex('gps') >= 0
-          ? this.shared.getGameResourceUrl(this._getGameLayerIconById('gps').url)
-          : './assets/gps.svg'
-        })
-          
-        });
+        const markeropts: Leaflet.MarkerOptions = {};
+        if (this._getIconIndex('gps') >= 0) {
+          const i = this._getGameLayerIconById('gps');
+          markeropts.icon = Leaflet.icon({
+            iconUrl: this.shared.getGameResourceUrl(i.url), 
+            iconSize: i.size as PointExpression || [30,30], 
+            iconAnchor: i.anchor as PointExpression || [15, 15]
+          });
+        } else {
+          markeropts.icon = Leaflet.icon({
+            iconUrl: './assets/gps.svg', 
+            iconSize: [30,30], 
+            iconAnchor: [15, 15]
+          });
+        }
+        this.positionMarker = Leaflet.marker(new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude), markeropts);
         this.changes.detectChanges();
       });
     }

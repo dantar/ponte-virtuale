@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 
 @Component({
@@ -27,9 +27,18 @@ export class PlayNewGameComponent implements OnInit {
         if (!this.shared.gameUrl) {
           this.shared.setGameUrl(gameUrl);
         }
+        this.shared.scenarioReadyObs.subscribe(() => this.takeactions(p));
         this.shared.initGame();
+      } else {
+        throw new Error('indicare il b64url del gioco');
       }
     });
+  }
+  takeactions(p: Params) {
+    if (p['qr']) {
+      const qr = p['qr'];
+      this.shared.triggerAction(qr);
+    }
   }
 
 }

@@ -8,6 +8,7 @@ const routes: Routes = [
   {path:'', component: MainLandingComponent},
   {path:'config', component: GameConfigComponent},
   {path:'play/:b64url', component: PlayNewGameComponent},
+  {path:'play/:b64url/:qr', component: PlayNewGameComponent},
 ];
 
 @NgModule({

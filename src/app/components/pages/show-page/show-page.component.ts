@@ -1,6 +1,6 @@
 import { Component, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { GameRepositoryService } from 'src/app/services/game-repository.service';
-import { GamePage } from 'src/app/services/ponte-virtuale.service';
+import { GameEventSubmitForm, GamePage } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 import { Optional } from 'src/app/services/utils';
 
@@ -57,6 +57,23 @@ export class ShowPageComponent implements OnInit, OnChanges {
       Optional.ifPresent(
         clickable.getAttribute('data-action'), 
         (action) => this.shared.triggerAction(action)
+      );
+      Optional.ifPresent(
+        clickable.getAttribute('data-submit'), 
+        (submit:string) => {
+          const split = submit.split(':');
+          const selector = split.pop() as string;
+          const tag = split.pop() as string;
+          const form = document.querySelectorAll(selector);
+          const event = new GameEventSubmitForm();
+          event.tag = tag;
+          form.forEach((element) => {
+            if (element instanceof HTMLInputElement) {
+              event.form[element.name || 'input'] = element.value;
+            }
+          });
+          this.shared.runEvent(event);
+        }
       );
       Optional.ifPresent(
         clickable.getAttribute('data-close'), 

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Option, GamePlay, GamePlayStory, GameScenario, PonteVirtualeService, GameCondition, GameEffect, GameOption, GamePage} from './ponte-virtuale.service';
+import { Option, GamePlay, GamePlayStory, GameScenario, PonteVirtualeService, GameCondition, GameEffect, GameOption, GamePage, GameEvent} from './ponte-virtuale.service';
 import { Subject, lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -224,6 +224,12 @@ export class SharedDataService {
 
   triggerAction(action: string) {
     this.pv.trigger(this.scenario, this.play, action);
+    this.updateGui();
+    this.savePlay();
+  }
+
+  runEvent(event: GameEvent) {
+    this.pv.gameEvent(this.scenario, this.play, event);
     this.updateGui();
     this.savePlay();
   }
