@@ -1,5 +1,6 @@
 import { Component, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { GameRepositoryService } from 'src/app/services/game-repository.service';
+import { LeafletSettingsService } from 'src/app/services/leaflet-settings.service';
 import { GameEventSubmitForm, GamePage } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 import { Optional } from 'src/app/services/utils';
@@ -17,6 +18,7 @@ export class ShowPageComponent implements OnInit, OnChanges {
 
   constructor(
     private repository: GameRepositoryService, 
+    public leaflet: LeafletSettingsService,
     public shared: SharedDataService,
     private ng: NgZone) {}
 
@@ -73,6 +75,12 @@ export class ShowPageComponent implements OnInit, OnChanges {
             }
           });
           this.shared.runEvent(event);
+        }
+      );
+      Optional.ifPresent(
+        clickable.getAttribute('data-takemeto'), 
+        (location:string) => {
+          this.leaflet.takeMeTo(location);
         }
       );
       Optional.ifPresent(

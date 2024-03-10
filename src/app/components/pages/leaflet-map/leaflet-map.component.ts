@@ -42,6 +42,26 @@ export class LeafletMapComponent implements OnInit {
 
   subscribezoom() {
     this.shared.zoomMapToObs.subscribe(location => this.zoomToFeature(location));
+    this.leaflet.takeMeToObs.subscribe(location => this.takeMeToFeature(location));
+  }
+
+  takeMeToFeature(location: string): void {
+    const feature = this.featuresById[location];
+    if (window && feature) {
+      const marker = feature.marker;
+      var locLatLng = marker.getLatLng();
+      let url: string;
+      if (this.positionMarker) {
+        var posLatLng = this.positionMarker.getLatLng();
+        url = `https://www.google.com/maps/dir/${posLatLng.lat},${posLatLng.lng}/${locLatLng.lat},${locLatLng.lng}`;
+      } else {
+        url = `https://www.google.com/maps/?q=${locLatLng.lat},${locLatLng.lng}`;
+      }
+      const w = window.open(url, '_blank');
+      if (w) {
+        w.focus();
+      }
+    }
   }
 
   zoomToFeature(location: string): void {

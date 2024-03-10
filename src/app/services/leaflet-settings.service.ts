@@ -1,16 +1,22 @@
 import { Injectable } from '@angular/core';
 import * as Leaflet from 'leaflet';
-import { Observable, Subscriber } from 'rxjs';
+import { Observable, Subject, Subscriber } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LeafletSettingsService {
+  takeMeTo(location: string) {
+    this.takeMeToSource.next(location);
+  }
 
   available: boolean;
   allowed: boolean;
   watchedposition: Observable<GeolocationPosition>;
   private watchid: number;
+
+  private takeMeToSource = new Subject<string>();
+  takeMeToObs = this.takeMeToSource.asObservable();
 
   observers: Subscriber<GeolocationPosition>[] = [];
 
