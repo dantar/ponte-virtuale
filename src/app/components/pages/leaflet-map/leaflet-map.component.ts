@@ -99,10 +99,15 @@ export class LeafletMapComponent implements OnInit {
       markeropts.icon = Leaflet.icon({
         iconUrl: this.shared.getGameResourceUrl(i.url), 
         iconSize: i.size as PointExpression || [30,30], 
-        iconAnchor: i.anchor as PointExpression || [15, 15]
+        iconAnchor: i.anchor as PointExpression || [15, 15],
+        className: `icon-${loc.id}`
       });
     } else {
-      markeropts.icon = Leaflet.icon({iconUrl: './assets/pin.svg', iconAnchor: [15, 15]});
+      markeropts.icon = Leaflet.icon({
+        iconUrl: './assets/pin.svg', 
+        iconAnchor: [15, 15],
+        className: `icon-${loc.id}`
+      });
     }
     const marker = Leaflet.marker(new Leaflet.LatLng(loc.pos ? loc.pos[0] : loc.lat, loc.pos? loc.pos[1] : loc.lon), markeropts);
     const feature = {
