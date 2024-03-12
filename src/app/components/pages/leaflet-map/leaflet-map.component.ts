@@ -108,7 +108,6 @@ export class LeafletMapComponent implements OnInit {
     .ifArray<{condition: GameCondition, icon: string | GameLayerIcon}>( (a) => {
       for (let index = 0; index < a.length; index++) {
         const i = a[index];
-        console.log("_getGameLayerIcon", i);
         if (!i.condition || this.shared.checkCondition(i.condition)) {
           handleIcon.of(i.icon);
           break;
@@ -130,7 +129,6 @@ export class LeafletMapComponent implements OnInit {
   private _makeFeature(loc: MapLocation): MapFeature {
     const markeropts: Leaflet.MarkerOptions = {};
     if (loc.icon) {
-      console.log("_makeFeature", loc.id);
       const i = this._getGameLayerIcon(loc);
       markeropts.icon = Leaflet.icon({
         iconUrl: this.shared.getGameResourceUrl(i.url), 
@@ -165,7 +163,6 @@ export class LeafletMapComponent implements OnInit {
   }
 
   getLayers(): Marker[] {
-    console.log("this.layer.features", this.layer.features);
     const markers = this.layer.features
     .filter(f => f.pos)
     .map(f => this._makeFeature(f).marker)
