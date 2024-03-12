@@ -868,10 +868,11 @@ export class MapLocation {
   name: string;
   icon?: string | GameLayerIcon | [{condition: GameCondition, icon: string | GameLayerIcon}];
   pos?: number[];
+  condition?: GameCondition;
+  
   lat: number; // obsolete?
   lon: number; // obsolete?
   near: boolean;
-  condition: GameCondition;
   description: string;
   anchor: number[];
 

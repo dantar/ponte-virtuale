@@ -162,11 +162,34 @@ export class LeafletMapComponent implements OnInit {
     };
   }
 
-  getLayers(): Marker[] {
-    const markers = this.layer.features
+  getLayers(): Leaflet.Layer[] {
+    const markers: Leaflet.Layer[] = this.layer.features
     .filter(f => f.pos)
+    .filter(f => !f.condition || this.shared.checkCondition(f.condition))
     .map(f => this._makeFeature(f).marker)
     ;
+    this.layer.features
+    .map(f => f as MapFeaturePolyline)
+    .filter(f => f.polyline)
+    .forEach(f => {
+      const mylines = {
+        "type": "LineString", 
+        "coordinates": f.polyline
+          .map(id => this.layer.features[this.layer.features.map(f=>f.id).indexOf(id)])
+          .filter(f => !f.condition || this.shared.checkCondition(f.condition))
+          .map(f => f.pos)
+          .map(p => p as number[])
+          .map(p => [p[1], p[0]])
+      } as GeoJSON.GeoJsonObject;
+      const myStyle = f.style || {
+          "color": "#ff7800",
+          "weight": 12,
+          "opacity": 0.65
+      };
+      //const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions).addTo(map);
+      const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions);
+      markers.push(gjlayer);
+    });
     if (this.positionMarker) {
       markers.push(this.positionMarker);
     }
@@ -207,27 +230,11 @@ export class LeafletMapComponent implements OnInit {
   onMapReady(map: Map) {
     console.log('onMapReady', this.map);
     this.map = map;
-    this.map.fitBounds(this.getLayers().map(m => m.getLatLng()).map(ll => [ll.lat,ll.lng]));
-
-    this.layer.features
-    .map(f => f as MapFeaturePolyline)
-    .filter(f => f.polyline)
-    .forEach(f => {
-      const mylines = {
-        "type": "LineString", 
-        "coordinates": f.polyline
-          .map(id => this.layer.features[this.layer.features.map(f=>f.id).indexOf(id)].pos)
-          .map(p => p as number[])
-          .map(p => [p[1], p[0]])
-      } as GeoJSON.GeoJsonObject;
-      const myStyle = f.style || {
-          "color": "#ff7800",
-          "weight": 12,
-          "opacity": 0.65
-      };
-      const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions).addTo(map);
-    });
-
+    this.map.fitBounds(
+      this.getLayers()
+      .filter(l => l instanceof Marker)
+      .map(m => (m as Marker).getLatLng())
+      .map(ll => [ll.lat,ll.lng]));
   }
 
 }
