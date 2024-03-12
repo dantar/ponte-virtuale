@@ -46,7 +46,9 @@ export class MainLandingComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     // Don't forget to remove style after component destroying
-    this.renderer.removeChild(document.head, this.stylesheet);
+    if (this.stylesheet) {
+      this.renderer.removeChild(document.head, this.stylesheet);
+    }
   }
 
   clickMarker(event: any) {
