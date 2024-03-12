@@ -3,7 +3,7 @@ import { GeoJSONOptions, Map, Marker, PointExpression } from 'leaflet';
 import { Subscription } from 'rxjs';
 import { IfTypeOf } from 'src/app/services/if-type-of.service';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
-import { GameLayerIcon, GameLayerMap, MapFeaturePolyline, MapLocation } from 'src/app/services/ponte-virtuale.service';
+import { GameCondition, GameLayerIcon, GameLayerMap, MapFeaturePolyline, MapLocation } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 
 @Component({
@@ -23,6 +23,8 @@ export class LeafletMapComponent implements OnInit {
   @Input() layer: GameLayerMap;
   @Output() clickMarker = new EventEmitter();
 
+  allicons: {[id:string]: Leaflet.Icon};
+
 
   constructor(
     public leaflet: LeafletSettingsService,
@@ -33,11 +35,19 @@ export class LeafletMapComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.allicons = {};
     this.featuresById = {};
     console.log('map is reset');
     this.subscribewatch();
     this.subscribezoom();
     this.options = this.leaflet.getMapOptions();
+
+    this.allicons['gps-fallback'] = Leaflet.icon({
+      iconUrl: './assets/pin.svg', 
+      iconAnchor: [15, 15],
+      className: `icon-gps-fallback`
+    });
+
   }
 
   subscribezoom() {
@@ -72,14 +82,39 @@ export class LeafletMapComponent implements OnInit {
       var latLngs = [ marker.getLatLng() ];
       var markerBounds = Leaflet.latLngBounds(latLngs);
       map.fitBounds(markerBounds);
+      this.changeFeatureIcon(feature);
     }
+  }
+
+  changeFeatureIcon(feature: MapFeature) {
+    // const icon = Leaflet.icon({
+    //   iconUrl: './assets/gps.svg', 
+    //   iconSize: [30,30], 
+    //   iconAnchor: [15, 15]
+    // });
+    //feature.marker.setIcon(icon);
+    feature.marker.setIcon(this.allicons['gps-fallback']);
+    feature.marker.getIcon();
   }
 
   private _getGameLayerIcon(loc: MapLocation): GameLayerIcon {
     const found: GameLayerIcon[] = [];
-    new IfTypeOf()
+    const handleIcon = new IfTypeOf()
     .ifString( (s) => found.push(this._getGameLayerIconById(s)) )
-    .ifObject( (o) => found.push(o as GameLayerIcon) )
+    .ifObject( (o) => found.push(o as GameLayerIcon) );
+    handleIcon.of(loc.icon);
+    //if (loc.icons || loc.id==='freedom-park-locomotive') 
+    new IfTypeOf()
+    .ifArray<{condition: GameCondition, icon: string | GameLayerIcon}>( (a) => {
+      for (let index = 0; index < a.length; index++) {
+        const i = a[index];
+        console.log("_getGameLayerIcon", i);
+        if (!i.condition || this.shared.checkCondition(i.condition)) {
+          handleIcon.of(i.icon);
+          break;
+        }
+      }
+    })
     .of(loc.icon);
     return found.pop() as GameLayerIcon;
   }
@@ -95,6 +130,7 @@ export class LeafletMapComponent implements OnInit {
   private _makeFeature(loc: MapLocation): MapFeature {
     const markeropts: Leaflet.MarkerOptions = {};
     if (loc.icon) {
+      console.log("_makeFeature", loc.id);
       const i = this._getGameLayerIcon(loc);
       markeropts.icon = Leaflet.icon({
         iconUrl: this.shared.getGameResourceUrl(i.url), 
@@ -129,6 +165,7 @@ export class LeafletMapComponent implements OnInit {
   }
 
   getLayers(): Marker[] {
+    console.log("this.layer.features", this.layer.features);
     const markers = this.layer.features
     .filter(f => f.pos)
     .map(f => this._makeFeature(f).marker)
@@ -197,3 +234,4 @@ export class LeafletMapComponent implements OnInit {
   }
 
 }
+

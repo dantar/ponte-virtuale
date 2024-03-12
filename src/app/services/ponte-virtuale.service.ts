@@ -866,8 +866,7 @@ export class MapLocation {
 
   id: string;
   name: string;
-  icon?: string | GameLayerIcon;
-  icons: [{condition: GameCondition, icon: string}];
+  icon?: string | GameLayerIcon | [{condition: GameCondition, icon: string | GameLayerIcon}];
   pos?: number[];
   lat: number; // obsolete?
   lon: number; // obsolete?

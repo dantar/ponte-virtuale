@@ -222,6 +222,10 @@ export class SharedDataService {
     this.savePlay();
   }
 
+  checkCondition(condition: GameCondition): boolean {
+    return this.pv.checkCondition(condition, this.play, this.scenario);
+  }
+
   triggerAction(action: string) {
     this.pv.trigger(this.scenario, this.play, action);
     this.updateGui();

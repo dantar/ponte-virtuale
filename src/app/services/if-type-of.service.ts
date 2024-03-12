@@ -19,10 +19,16 @@ export class IfTypeOf {
   handleString: (item: string) => void;
   handleArray: (a: any[]) => void;
   handleClass: (item: any) => void;
+  handleUndefined: () => void;
   classToHandle: any;
 
   constructor() {
 
+  }
+
+  ifUndefined(handle: () => void): IfTypeOf {
+    this.handleUndefined = handle;
+    return this;
   }
 
   ifNumber(handle: (n: number) => void): IfTypeOf {
@@ -51,13 +57,18 @@ export class IfTypeOf {
   }
 
   of(item: any): void {
+    if (typeof item === 'undefined') {
+      if (typeof this.handleUndefined != 'undefined') {
+        this.handleUndefined();
+      };
+    }
     if (typeof item === 'string') {
       if (typeof this.handleString != 'undefined') {
         this.handleString(item);
       };
     }
     if (typeof item === 'object') {
-      if (Array.isArray(item)) {
+      if (Array.isArray(item) && (typeof this.handleArray != 'undefined')) {
         this.handleArray(item);
       } else if (this.classToHandle && item instanceof this.classToHandle) {
         this.handleClass(item);
