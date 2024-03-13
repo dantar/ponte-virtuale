@@ -17,6 +17,7 @@ import { RenderHtmlComponent } from './components/gui/render-html/render-html.co
 import { GameConfigComponent } from './components/pages/game-config/game-config.component';
 import { ShowPageComponent } from './components/pages/show-page/show-page.component';
 import { PlayNewGameComponent } from './components/pages/play-new-game/play-new-game.component';
+import { GameHtmlComponent } from './components/gui/game-html/game-html.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { PlayNewGameComponent } from './components/pages/play-new-game/play-new-
     RenderHtmlComponent,
     GameConfigComponent,
     ShowPageComponent,
-    PlayNewGameComponent
+    PlayNewGameComponent,
+    GameHtmlComponent
   ],
   imports: [
     BrowserModule,

@@ -1,4 +1,1 @@
-<div *ngIf="loading">loading...</div>
-<div *ngIf="!loading && html" class="fullpage pv-page-view" [ngClass]="shared.statusCssClasses()">
-    <app-render-html [html]="shared.getReplaceResourceUrls(html) | safe:'html'" (clickable)="handleClickable($event)"></app-render-html>
-</div>
+<app-game-html *ngIf="fullpage" [url]="fullpage.url" (clickable)="handleClickable($event)"></app-game-html>

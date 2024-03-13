@@ -14,7 +14,7 @@ export class ShowPageComponent implements OnInit, OnChanges {
 
   @Input() page: string;
   loading: boolean;
-  html: string;
+  fullpage: GamePage;
 
   constructor(
     private repository: GameRepositoryService, 
@@ -32,20 +32,7 @@ export class ShowPageComponent implements OnInit, OnChanges {
 
   private refreshHtml() {
     this.loading = true;
-    const fullpage: GamePage = this.shared.getPage(this.page);
-    this.repository.observeResource(this.shared.getGameResourceUrl(fullpage.url))
-    .subscribe(
-      {
-        next: svgsource => {
-          this.html = svgsource;
-          this.loading = false;
-        },
-        error: error => {
-          console.log(`problem with file ${fullpage.url}`);
-          this.loading = false;
-        }
-      }
-    );
+    this.fullpage = this.shared.getPage(this.page);
   }
 
   handleClickable(event: any) {

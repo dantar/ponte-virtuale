@@ -1,0 +1,2 @@
+<div class="loading-game-html" *ngIf="loading">loading...</div>
+<app-render-html *ngIf="!loading && html" [html]="html | safe:'html'" (clickable)="clickable.emit($event)"></app-render-html>

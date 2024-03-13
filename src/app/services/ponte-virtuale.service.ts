@@ -739,6 +739,7 @@ export class GameLayerMap extends GameLayer {
   conf?: MapInitData;
   icons: GameLayerIcon[];
   features: MapLocation[];
+  menu?: string;
 }
 export class GameLayerIcon {
   id: string;
@@ -869,7 +870,7 @@ export class MapLocation {
   icon?: string | GameLayerIcon | [{condition: GameCondition, icon: string | GameLayerIcon}];
   pos?: number[];
   condition?: GameCondition;
-  
+
   lat: number; // obsolete?
   lon: number; // obsolete?
   near: boolean;

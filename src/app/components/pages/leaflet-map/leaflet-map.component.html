@@ -7,6 +7,7 @@
 <div *ngIf="!leaflet.available">
     Il tuo dispositivo non consente di individuare la tua posizione in mappa
 </div>
+<app-game-html *ngIf="layer.menu" [url]="layer.menu" (clickable)="handleMenuClickable($event)"></app-game-html>
 <div *ngIf="leaflet.available && !leaflet.allowed" >
     <div>Mappe disabilitate</div>
     <div (click)="enableGps()">Abilita</div>

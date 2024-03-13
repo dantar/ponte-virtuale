@@ -5,6 +5,7 @@ import { IfTypeOf } from 'src/app/services/if-type-of.service';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
 import { GameCondition, GameLayerIcon, GameLayerMap, MapFeaturePolyline, MapLocation } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
+import { Optional } from 'src/app/services/utils';
 
 @Component({
   selector: 'app-leaflet-map',
@@ -75,26 +76,23 @@ export class LeafletMapComponent implements OnInit {
   }
 
   zoomToFeature(location: string): void {
-    const map = this.map;
-    const feature = this.featuresById[location];
-    if (feature) {
+    if (location in this.featuresById) {
+      const feature = this.featuresById[location];
       const marker = feature.marker;
-      var latLngs = [ marker.getLatLng() ];
-      var markerBounds = Leaflet.latLngBounds(latLngs);
-      map.fitBounds(markerBounds);
-      this.changeFeatureIcon(feature);
+      this.fitBounds(feature.marker, feature.marker, feature.marker);
+    } else {
+      switch (location) {
+        case 'gps':
+          
+          break;
+        default:
+          break;
+      }
     }
   }
 
-  changeFeatureIcon(feature: MapFeature) {
-    // const icon = Leaflet.icon({
-    //   iconUrl: './assets/gps.svg', 
-    //   iconSize: [30,30], 
-    //   iconAnchor: [15, 15]
-    // });
-    //feature.marker.setIcon(icon);
-    feature.marker.setIcon(this.allicons['gps-fallback']);
-    feature.marker.getIcon();
+  fitBounds(...markers: Marker[]) {
+    this.map.fitBounds(Leaflet.latLngBounds(markers.map(m => m.getLatLng())));
   }
 
   private _getGameLayerIcon(loc: MapLocation): GameLayerIcon {
@@ -235,6 +233,19 @@ export class LeafletMapComponent implements OnInit {
       .filter(l => l instanceof Marker)
       .map(m => (m as Marker).getLatLng())
       .map(ll => [ll.lat,ll.lng]));
+  }
+
+  handleMenuClickable(event: any) {
+    this.ng.run(() => {
+
+      console.log('handleClickable', event);
+      const clickable = event.target.closest(".clickable");
+      Optional.ifPresent(
+        clickable.getAttribute('data-zoomto'), 
+        (zoomto) => this.shared.fireZoomTo(zoomto)
+      );
+  
+    });
   }
 
 }
