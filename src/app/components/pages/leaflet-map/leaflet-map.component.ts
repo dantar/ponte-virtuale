@@ -85,7 +85,8 @@ export class LeafletMapComponent implements OnInit {
           if (this.positionMarker) {
             this.fitBounds(this.positionMarker);
           } else {
-            this.enableGps();
+            this.leaflet.allowWatch();
+            this.subscribewatch((m) => this.fitBounds(m));
           }
           break;
         case 'all-features':
@@ -200,7 +201,7 @@ export class LeafletMapComponent implements OnInit {
     return markers;
   }
 
-  subscribewatch() {
+  subscribewatch(callback?: (m:Marker) => void) {
     console.log('subscribe moving');
     if (this.leaflet.watchedposition) {
       this.tracker = this.leaflet.watchedposition.subscribe((aa) => {
@@ -225,7 +226,9 @@ export class LeafletMapComponent implements OnInit {
           this.positionMarker.setLatLng(latlng);
         } else {
           this.positionMarker = Leaflet.marker(latlng, markeropts);
-          this.fitBounds(this.positionMarker);
+          if (callback) {
+            callback(this.positionMarker);
+          }
         }        
         this.changes.detectChanges();
       });
