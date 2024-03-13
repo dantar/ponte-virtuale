@@ -78,12 +78,18 @@ export class LeafletMapComponent implements OnInit {
   zoomToFeature(location: string): void {
     if (location in this.featuresById) {
       const feature = this.featuresById[location];
-      const marker = feature.marker;
-      this.fitBounds(feature.marker, feature.marker, feature.marker);
+      this.fitBounds(feature.marker);
     } else {
       switch (location) {
         case 'gps':
-          
+          if (this.positionMarker) {
+            this.fitBounds(this.positionMarker);
+          } else {
+            this.enableGps();
+          }
+          break;
+        case 'all-features':
+          this.fitBounds(... Object.keys(this.featuresById).map(k => this.featuresById[k].marker));
           break;
         default:
           break;
@@ -214,7 +220,13 @@ export class LeafletMapComponent implements OnInit {
             iconAnchor: [15, 15]
           });
         }
-        this.positionMarker = Leaflet.marker(new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude), markeropts);
+        const latlng = new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude);
+        if (this.positionMarker) {
+          this.positionMarker.setLatLng(latlng);
+        } else {
+          this.positionMarker = Leaflet.marker(latlng, markeropts);
+          this.fitBounds(this.positionMarker);
+        }        
         this.changes.detectChanges();
       });
     }
