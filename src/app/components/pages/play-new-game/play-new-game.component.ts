@@ -22,7 +22,12 @@ export class PlayNewGameComponent implements OnInit {
     this.route.params.subscribe(p => {
       this.loading = false;
       if (p['b64url']) {
-        const gameUrl = atob(p['b64url']);
+        let gameUrl: string;
+        try {
+          gameUrl = atob(p['b64url']);
+        } catch (error) {
+          gameUrl = `../${p['b64url']}`;
+        }
         console.log("Now playing", gameUrl);
         if (!this.shared.gameUrl) {
           this.shared.setGameUrl(gameUrl);

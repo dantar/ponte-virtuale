@@ -20,7 +20,11 @@ do
         h) case "${OPTARG}" in
                 atlante) 
                     TARGET=${OPTARG}
-                    DEST=atlante.elabor.biz
+                    DEST=atlante.elabor.biz:dist/
+                ;;
+                dantar) 
+                    TARGET=${OPTARG}
+                    DEST=dantar:html/
                 ;;
                 *) die "opzione invalida: ${OPTARG}";;
             esac
