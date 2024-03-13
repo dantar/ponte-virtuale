@@ -1,14 +1,10 @@
 <div *ngIf="shared.scenario">
 
     <link *ngIf="stylesheetUrl" [attr.href]="stylesheetUrl" rel="stylesheet" type="text/css" />
-    <div *ngIf="stylesheetUrl">
-        <a [href]="stylesheetUrl">Vediamo [{{stylesheetUrl}}]</a>
-        <a [attr.href]="stylesheetUrl">Vediamo [{{stylesheetUrl}}]</a>
-    </div>
 
     <div *ngIf="!shared.play" (click)="startGame()">Inizia partita</div>
 
-    <ng-container *ngIf="shared.play">
+    <div *ngIf="shared.play" [class]="shared.statusCssClasses()">
 
         <app-leaflet-map *ngIf="shared.scenario.map" [layer]="shared.scenario.map" (clickMarker)="clickMarker($event)"></app-leaflet-map>
 
@@ -20,7 +16,7 @@
             </div>
         </ng-container>
 
-    </ng-container>
+    </div>
 
 </div>
 <div *ngIf="!shared.scenario">

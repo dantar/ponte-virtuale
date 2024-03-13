@@ -1,4 +1,1 @@
-<div *ngIf="loading">loading... {{story.origin.html}}</div>
-<div *ngIf="!loading && html" [class]="shared.statusCssClasses()">
-    <app-render-html [html]="shared.getReplaceResourceUrls(html) | safe:'html'" (clickable)="handleClickable($event)"></app-render-html>
-</div>
+<app-game-html *ngIf="story.origin.html" [url]="story.origin.html" (clickable)="handleClickable($event)"></app-game-html>

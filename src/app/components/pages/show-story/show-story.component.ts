@@ -19,20 +19,6 @@ export class ShowStoryComponent implements OnInit {
   constructor(private repository: GameRepositoryService, public shared: SharedDataService) {}
 
   ngOnInit() {
-    this.loading = true;
-    this.repository.observeResource(this.shared.getGameResourceUrl(this.story.origin.html))
-    .subscribe(
-      {
-        next: svgsource => {
-          this.html = svgsource;
-          this.loading = false;
-        },
-        error: error => {
-          console.log(`problem with file ${this.story.origin.html}`);
-          this.loading = false;
-        }
-      }
-    );
   }
 
   handleClickable(event: any) {
