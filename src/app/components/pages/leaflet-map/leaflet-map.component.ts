@@ -92,6 +92,14 @@ export class LeafletMapComponent implements OnInit {
         case 'all-features':
           this.fitBounds(... Object.keys(this.featuresById).map(k => this.featuresById[k].marker));
           break;
+        case 'gps-and-all-features':
+          if (this.positionMarker) {
+            this.fitBounds(this.positionMarker, ... Object.keys(this.featuresById).map(k => this.featuresById[k].marker));
+          } else {
+            this.leaflet.allowWatch();
+            this.subscribewatch((m) => this.fitBounds(m, ... Object.keys(this.featuresById).map(k => this.featuresById[k].marker)));
+          }
+          break;
         default:
           break;
       }
