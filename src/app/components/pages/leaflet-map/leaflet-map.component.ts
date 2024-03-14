@@ -267,7 +267,12 @@ export class LeafletMapComponent implements OnInit {
         clickable.getAttribute('data-zoomto'), 
         (zoomto) => this.shared.fireZoomTo(zoomto)
       );
-  
+      Optional.ifPresent(
+        clickable.getAttribute('data-page'), 
+        (page) => {
+          this.shared.showPage(page);
+        }
+      );
     });
   }
 
