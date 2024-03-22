@@ -1,5 +1,4 @@
-import { Component, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { GameRepositoryService } from 'src/app/services/game-repository.service';
+import { Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { LeafletSettingsService } from 'src/app/services/leaflet-settings.service';
 import { GameEventSubmitForm, GamePage } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
@@ -13,14 +12,13 @@ import { Optional } from 'src/app/services/utils';
 export class ShowPageComponent implements OnInit, OnChanges {
 
   @Input() page: string;
-  loading: boolean;
   fullpage: GamePage;
 
   constructor(
-    private repository: GameRepositoryService, 
     public leaflet: LeafletSettingsService,
     public shared: SharedDataService,
-    private ng: NgZone) {}
+  ) 
+  {}
 
   ngOnChanges(changes: SimpleChanges): void {
     this.refreshHtml();
@@ -31,57 +29,53 @@ export class ShowPageComponent implements OnInit, OnChanges {
   }
 
   private refreshHtml() {
-    this.loading = true;
     this.fullpage = this.shared.getPage(this.page);
   }
 
   handleClickable(event: any) {
-    this.ng.run(() => {
-      console.log('handleClickable', event);
-      const clickable = event.target.closest(".clickable");
-      Optional.ifPresent(
-        clickable.getAttribute('data-zoomto'), 
-        (zoomto) => this.shared.fireZoomTo(zoomto)
-      );
-      Optional.ifPresent(
-        clickable.getAttribute('data-action'), 
-        (action) => this.shared.triggerAction(action)
-      );
-      Optional.ifPresent(
-        clickable.getAttribute('data-submit'), 
-        (submit:string) => {
-          const split = submit.split(':');
-          const selector = split.pop() as string;
-          const tag = split.pop() as string;
-          const form = document.querySelectorAll(selector);
-          const event = new GameEventSubmitForm();
-          event.tag = tag;
-          form.forEach((element) => {
-            if (element instanceof HTMLInputElement) {
-              event.form[element.name || 'input'] = element.value;
-            }
-          });
-          this.shared.runEvent(event);
-        }
-      );
-      Optional.ifPresent(
-        clickable.getAttribute('data-takemeto'), 
-        (location:string) => {
-          this.leaflet.takeMeTo(location);
-        }
-      );
-      Optional.ifPresent(
-        clickable.getAttribute('data-close'), 
-        (close) => this.chiudi()
-      );
-      Optional.ifPresent(
-        clickable.getAttribute('data-page'), 
-        (page) => {
-          this.chiudi();
-          this.shared.showPage(page);
-        }
-      );
-    });
+    const clickable = event.target.closest(".clickable");
+    Optional.ifPresent(
+      clickable.getAttribute('data-zoomto'), 
+      (zoomto) => this.shared.fireZoomTo(zoomto)
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-action'), 
+      (action) => this.shared.triggerAction(action)
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-submit'), 
+      (submit:string) => {
+        const split = submit.split(':');
+        const selector = split.pop() as string;
+        const tag = split.pop() as string;
+        const form = document.querySelectorAll(selector);
+        const event = new GameEventSubmitForm();
+        event.tag = tag;
+        form.forEach((element) => {
+          if (element instanceof HTMLInputElement) {
+            event.form[element.name || 'input'] = element.value;
+          }
+        });
+        this.shared.runEvent(event);
+      }
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-takemeto'), 
+      (location:string) => {
+        this.leaflet.takeMeTo(location);
+      }
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-close'), 
+      (close) => this.chiudi()
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-page'), 
+      (page) => {
+        this.chiudi();
+        this.shared.showPage(page);
+      }
+    );
   }
 
   chiudi() {

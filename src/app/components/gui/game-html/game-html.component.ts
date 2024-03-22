@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { GameRepositoryService } from 'src/app/services/game-repository.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 
@@ -7,7 +7,7 @@ import { SharedDataService } from 'src/app/services/shared-data.service';
   templateUrl: './game-html.component.html',
   styleUrls: ['./game-html.component.scss']
 })
-export class GameHtmlComponent {
+export class GameHtmlComponent implements OnInit, OnChanges {
 
   @Input() url: string;
   @Output() clickable = new EventEmitter();
@@ -20,6 +20,10 @@ export class GameHtmlComponent {
     private shared: SharedDataService,
   ) {
 
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.refreshHtml();
   }
 
   ngOnInit() {
