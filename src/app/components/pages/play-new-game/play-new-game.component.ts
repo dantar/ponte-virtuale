@@ -29,9 +29,7 @@ export class PlayNewGameComponent implements OnInit {
           gameUrl = `../${p['b64url']}`;
         }
         console.log("Now playing", gameUrl);
-        if (!this.shared.gameUrl) {
-          this.shared.setGameUrl(gameUrl);
-        }
+        this.shared.setGameUrl(gameUrl);
         this.shared.scenarioReadyObs.subscribe(() => this.takeactions(p));
         this.shared.initGame();
       } else {

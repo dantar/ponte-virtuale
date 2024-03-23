@@ -1,5 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { IfTypeOf } from 'src/app/services/if-type-of.service';
 import { GamePlayStory, GameScenario } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 
@@ -10,10 +11,10 @@ import { SharedDataService } from 'src/app/services/shared-data.service';
 })
 export class MainLandingComponent implements OnInit, OnDestroy {
 
-  stylesheetUrl: string;
   @Inject(DOCUMENT) private document: Document
 
   private stylesheet?: HTMLLinkElement;
+  private cssLinks: HTMLLinkElement[];
 
   constructor(
     public shared: SharedDataService,
@@ -23,6 +24,7 @@ export class MainLandingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.cssLinks = [];
     if (this.shared.scenario) {
       this.initStylesheet(this.shared.scenario);
     } else {
@@ -33,22 +35,26 @@ export class MainLandingComponent implements OnInit, OnDestroy {
   }
 
   private initStylesheet(scenario: GameScenario) { 
-    if (scenario.stylesheet) {
-      // Create a link element via Angular's renderer to avoid SSR troubles
-      this.stylesheet = this.renderer.createElement('link') as HTMLLinkElement;
-      // Add the style to the head section
-      this.renderer.appendChild(document.head, this.stylesheet);
-      // Set type of the link item and path to the css file
-      this.renderer.setProperty(this.stylesheet, 'rel', 'stylesheet');
-      this.renderer.setProperty(this.stylesheet, 'href', this.shared.getGameResourceUrl(scenario.stylesheet));
-    }     
+    IfTypeOf.build()
+    .ifArray<string>(a => a.forEach(css => this.pushStylesheet(css)))
+    .ifString(css => this.pushStylesheet(css))
+    .of(scenario.stylesheet);
+  }
+
+  private pushStylesheet(cssUrl: string) { 
+    // Create a link element via Angular's renderer to avoid SSR troubles
+    const link = this.renderer.createElement('link') as HTMLLinkElement;
+    // Add the style to the head section
+    this.renderer.appendChild(document.head, link);
+    // Set type of the link item and path to the css file
+    this.renderer.setProperty(link, 'rel', 'stylesheet');
+    this.renderer.setProperty(link, 'href', this.shared.getGameResourceUrl(cssUrl));
+    this.cssLinks.push(link);
   }
 
   public ngOnDestroy(): void {
     // Don't forget to remove style after component destroying
-    if (this.stylesheet) {
-      this.renderer.removeChild(document.head, this.stylesheet);
-    }
+    this.cssLinks.forEach((link) => this.renderer.removeChild(document.head, link));
   }
 
   clickMarker(event: any) {

@@ -216,7 +216,7 @@ export class GameScenario {
   pages?: GamePage[];
   stories: GameEffectStoryItem[];
   badges?: GameBadge[];
-  stylesheet?: string;
+  stylesheet?: string | string[];
 
   rules: GameRule[];
   options: GameOption[];

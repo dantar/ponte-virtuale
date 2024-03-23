@@ -1,7 +1,5 @@
 <div *ngIf="shared.scenario">
 
-    <link *ngIf="stylesheetUrl" [attr.href]="stylesheetUrl" rel="stylesheet" type="text/css" />
-
     <div *ngIf="!shared.play" (click)="startGame()">Inizia partita</div>
 
     <div *ngIf="shared.play" [class]="shared.statusCssClasses()">
