@@ -1,1 +1,1 @@
-<app-game-html *ngIf="story.origin.url" [url]="story.origin.url" (clickable)="handleClickable($event)"></app-game-html>
+<app-game-html *ngIf="story.origin.url" [url]="story.origin.url" [template]="story.origin.template" [data]="story.origin.data" (clickable)="handleClickable($event)"></app-game-html>

@@ -592,6 +592,8 @@ export class GameEffectStoryItem {
   url: string;
   read?: string;
   video?: string;
+  template?: string;
+  data?: {[id:string]: number|string};
 }
 GameEffect.register(GameEffectStory);
 
