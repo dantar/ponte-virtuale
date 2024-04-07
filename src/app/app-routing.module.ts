@@ -7,8 +7,12 @@ import { PlayNewGameComponent } from './components/pages/play-new-game/play-new-
 const routes: Routes = [
   {path:'', component: MainLandingComponent},
   {path:'config', component: GameConfigComponent},
-  {path:'play/:b64url', component: PlayNewGameComponent},
-  {path:'play/:b64url/:qr', component: PlayNewGameComponent},
+  {path:'go/:folder', component: PlayNewGameComponent},
+  {path:'go/:folder/:qr', component: PlayNewGameComponent},
+  {path:'b64/:b64url', component: PlayNewGameComponent},
+  {path:'b64/:b64url/:qr', component: PlayNewGameComponent},
+  {path:'a/:asset', component: PlayNewGameComponent},
+  {path:'a/:asset/:qr', component: PlayNewGameComponent},
 ];
 
 @NgModule({

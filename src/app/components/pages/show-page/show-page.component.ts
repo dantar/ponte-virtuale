@@ -30,6 +30,11 @@ export class ShowPageComponent implements OnInit, OnChanges {
 
   private refreshHtml() {
     this.fullpage = this.shared.getPage(this.page);
+    if (this.fullpage.data) {
+      this.fullpage.data = {...{id: this.fullpage.id}, ...this.fullpage.data};
+    } else {
+      this.fullpage.data = {id: this.fullpage.id};
+    }
   }
 
   handleClickable(event: any) {

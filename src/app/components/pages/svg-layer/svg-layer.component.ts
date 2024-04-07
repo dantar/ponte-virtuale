@@ -26,7 +26,7 @@ export class SvgLayerComponent implements OnInit{
   
   ngOnInit(): void {
     this.serializer = new XMLSerializer();
-    this.repository.observeResource(this.shared.getGameResourceUrl(this.story.origin.html))
+    this.repository.observeResource(this.shared.getGameResourceUrl(this.story.origin.url))
     .subscribe(
       {
         next: svgsource => {
@@ -53,7 +53,7 @@ export class SvgLayerComponent implements OnInit{
         this.serializer.serializeToString(this.svg);
         },
         error: error => {
-          console.log(`missing problem with file ${this.story.origin.html}`);
+          console.log(`missing problem with file ${this.story.origin.url}`);
         }
     }
       

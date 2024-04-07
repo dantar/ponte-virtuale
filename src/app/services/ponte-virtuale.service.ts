@@ -589,7 +589,7 @@ export class GameEffectStory extends GameEffect {
 }
 export class GameEffectStoryItem {
   id?: string;
-  html: string;
+  url: string;
   read?: string;
   video?: string;
 }
@@ -752,6 +752,8 @@ export class GamePage {
   id: string;
   code: 'map' | 'html' | 'svg';
   url: string;
+  template?: string;
+  data?: {[id:string]: number|string};
 }
 
 export class GamePlayStory {

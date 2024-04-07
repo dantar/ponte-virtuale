@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { IfTypeOf } from 'src/app/services/if-type-of.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
 
 @Component({
@@ -21,21 +22,27 @@ export class PlayNewGameComponent implements OnInit {
     this.loading = true;
     this.route.params.subscribe(p => {
       this.loading = false;
+      let gameUrl: string = '';
+      if (p['folder']) {
+        gameUrl = `../${p['folder']}`;
+      }
+      if (p['asset']) {
+        gameUrl = `./assets/${p['asset']}`;
+      }
       if (p['b64url']) {
-        let gameUrl: string;
         try {
           gameUrl = atob(p['b64url']);
         } catch (error) {
-          gameUrl = `../${p['b64url']}`;
+          throw new Error('indicare il b64url del gioco');
         }
+      }
+      if (gameUrl) {
         console.log("Now playing", gameUrl);
         this.shared.setGameUrl(gameUrl);
         this.shared.scenarioReadyObs.subscribe(() => this.takeactions(p));
         this.shared.initGame();
-      } else {
-        throw new Error('indicare il b64url del gioco');
       }
-    });
+  });
   }
   takeactions(p: Params) {
     if (p['qr']) {
