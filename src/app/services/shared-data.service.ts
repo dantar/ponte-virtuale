@@ -244,6 +244,12 @@ export class SharedDataService {
     this.savePlay();
   }
 
+  showStory(story: string) {
+    this.pv.showStory(this.scenario, this.play, story);
+    this.updateGui();
+    this.savePlay();
+  }
+
   successfulChallenge() {
     this.pv.successfulChallenge(this.scenario, this.play);
     this.updateGui();

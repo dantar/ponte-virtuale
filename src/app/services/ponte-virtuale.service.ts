@@ -99,6 +99,10 @@ export class PonteVirtualeService {
     }
   }
 
+  showStory(scenario: GameScenario, play: GamePlay, story: string) {
+    play.story.push(({origin: GameScenario.getStory(scenario, story), published: false} as GamePlayStory));
+  }
+
   successfulChallenge(scenario: GameScenario, play: GamePlay) {
     play.event = new GameEventSuccessfulChallenge(play.challenge!.challenge);
     play.challenge = null;
