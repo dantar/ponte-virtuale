@@ -327,6 +327,9 @@ export class SharedDataService {
         result[`nobadge-${badge.badge}`] = !this.play.badges.includes(badge.badge);
       });
     }
+    if (this.play.settings) {
+      Object.keys(this.play.settings).forEach(key => result[`setting-${key}-${this.play.settings[key]}`] = true);
+    }
     return result;
   }
 

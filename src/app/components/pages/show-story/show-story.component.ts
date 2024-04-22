@@ -39,6 +39,12 @@ export class ShowStoryComponent implements OnInit {
         this.shared.resolveEffect({story: more} as GameEffectStory);
       }
     );
+    Optional.ifPresent(
+      clickable.getAttribute('data-page'), 
+      (page) => {
+        this.shared.showPage(page);
+      }
+    );
   }
 
   chiudi() {

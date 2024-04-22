@@ -579,6 +579,20 @@ export class GameEffect {
   }
 }
 
+export class GameEffectSettings extends GameEffect {
+  settings: {[key:string]: string};
+  static override run(effect: GameEffectSettings, scenario: GameScenario, play: GamePlay) {
+    if (!play.settings) {
+      play.settings = {};
+    }
+    play.settings = {...play.settings, ...effect.settings};
+  }
+  static override valid(effect: GameEffectSettings) {
+    return effect.settings ? true : false;
+  }
+}
+GameEffect.register(GameEffectSettings);
+
 export class GameEffectStory extends GameEffect {
   story: string | GameEffectStoryItem[];
   static override run(effect: GameEffectStory, scenario: GameScenario, play: GamePlay) {
