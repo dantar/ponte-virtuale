@@ -9,6 +9,8 @@ const routes: Routes = [
   {path:'config', component: GameConfigComponent},
   {path:'go/:folder', component: PlayNewGameComponent},
   {path:'go/:folder/:qr', component: PlayNewGameComponent},
+  {path:'play/:folder', component: PlayNewGameComponent},
+  {path:'play/:folder/:qr', component: PlayNewGameComponent},
   {path:'b64/:b64url', component: PlayNewGameComponent},
   {path:'b64/:b64url/:qr', component: PlayNewGameComponent},
   {path:'a/:asset', component: PlayNewGameComponent},
