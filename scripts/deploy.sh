@@ -12,6 +12,7 @@ cd -
 
 TARGET=atlante
 DEST=atlante.elabor.biz:dist/
+INCLUDEZIP=false
 die() { echo "$*" 1>&2 ; exit 1; }
 while getopts h: flag;
 do
@@ -21,6 +22,7 @@ do
                 atlante) 
                     TARGET=${OPTARG}
                     DEST=atlante.elabor.biz:dist/
+                    INCLUDEZIP=true
                 ;;
                 dantar) 
                     TARGET=${OPTARG}
@@ -34,4 +36,11 @@ do
 done
 
 cd $MAINDIR
-ng build --base-href=./ --configuration=production && rsync --delete -varzh $MAINDIR/dist/* $DEST
+ng build --base-href=./ --configuration=production && \
+rsync --delete -varzh $MAINDIR/dist/* $DEST
+
+if [ $INCLUDEZIP = "true" ]; then
+    cd $MAINDIR/dist/ponte-virtuale && \
+    zip -r /tmp/ponte-virtuale.zip * && \
+    scp /tmp/ponte-virtuale.zip atlante.elabor.biz:/var/www/html/download
+fi
