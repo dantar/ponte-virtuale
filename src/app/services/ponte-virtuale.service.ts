@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { GeoJSONOptions } from 'leaflet';
-import { Observable, lastValueFrom } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { IfTypeOf } from './if-type-of.service';
 
 @Injectable({
@@ -21,18 +21,7 @@ export class PonteVirtualeService {
   }
 
   checkAndRunRule(rule: GameRule, scenario: GameScenario, play: GamePlay): void {
-    if (
-      !rule.trigger || 
-      GameEventSubmitForm.validEvent(rule, scenario, play) ||
-      GameEventTriggerAction.validEvent(rule, scenario, play) ||
-      GameEventStart.validEvent(rule, scenario, play) ||
-      GameEventVisit.validEvent(rule, scenario, play) ||
-      GameEventTooFar.validEvent(rule, scenario, play) ||
-      GameEventSuccessfulChallenge.validEvent(rule, scenario, play) ||
-      GameEventFailedChallenge.validEvent(rule, scenario, play) ||
-      GameEventQrCode.validEvent(rule, scenario, play) || 
-      GameEventShowPage.validEvent(rule, scenario, play)
-      ) {
+    if (!rule.trigger || GameEvent.validEvent(rule, scenario, play)) {
         if(!rule.condition || this.checkCondition(rule.condition, play, scenario)) {
           this.runAllRuleEffects(rule, scenario, play);
         }
@@ -70,17 +59,12 @@ export class PonteVirtualeService {
   }
 
   visit(scenario: GameScenario, play: GamePlay, location: string) {
-    play.event = new GameEventVisit(location);
-    this.runScenarioRules(scenario, play);
-  }
-
-  tooFar(scenario: GameScenario, play: GamePlay, location: string) {
-    play.event = new GameEventTooFar(location);
+    play.event = new GameEventVisit().setLocation(location);
     this.runScenarioRules(scenario, play);
   }
 
   trigger(scenario: GameScenario, play: GamePlay, action: string) {
-    play.event = new GameEventTriggerAction(action);
+    play.event = new GameEventTriggerAction().setAction(action);
     this.runScenarioRules(scenario, play);
   }
 
@@ -90,7 +74,7 @@ export class PonteVirtualeService {
   }
 
   showPage(scenario: GameScenario, play: GamePlay, page: string) {
-    play.event = new GameEventShowPage(page);
+    play.event = new GameEventShowPage().setPage(page);
     this.runScenarioRules(scenario, play);
     const lastPage = play.currentPage;
     if (play.currentPage === lastPage) {
@@ -103,28 +87,12 @@ export class PonteVirtualeService {
     play.story.push(({origin: GameScenario.getStory(scenario, story), published: false} as GamePlayStory));
   }
 
-  successfulChallenge(scenario: GameScenario, play: GamePlay) {
-    play.event = new GameEventSuccessfulChallenge(play.challenge!.challenge);
-    play.challenge = null;
-    this.runScenarioRules(scenario, play);
-  }
-
-  failedChallenge(scenario: GameScenario, play: GamePlay) {
-    play.event = new GameEventFailedChallenge(play.challenge!.challenge);
-    play.challenge = null;
-    this.runScenarioRules(scenario, play);
-  }
-
-  cancelChallenge(scenario: GameScenario, play: GamePlay) {
-    play.challenge = null;
-  }
-
   qr(scenario: GameScenario, play: GamePlay, trigger: string) {
     let code = trigger;
     if (code.startsWith('http') && code.lastIndexOf('/') > 0) {
       code = code.substring(code.lastIndexOf('/') + 1);
     }
-    play.event = new GameEventQrCode(code);
+    play.event = new GameEventQrCode().setCode(code);
     this.runScenarioRules(scenario, play);
   }
 
@@ -266,146 +234,118 @@ function safeCapture(text: string, re: RegExp, index: number): string | null {
 }
 
 export class GameEvent {
+  static _events: typeof GameEvent[] = [];
+  static register(eventClass: typeof GameEvent) {
+    this._events.push(eventClass);
+  }
+  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+    for (let index = 0; index < this._events.length; index++) {
+      const element = this._events[index];
+      if (element.validEvent(rule, scenario, play)) {
+        return true;
+      };
+    }
+    return false;
+  }
+
 }
 
 export class GameEventStart extends GameEvent {
 
   start = true;
 
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+  static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     return (play.event as GameEventStart).start && rule.trigger === 'start';
   }
 
 }
+GameEvent.register(GameEventStart);
 
-export class GameEventVisit {
+export class GameEventVisit extends GameEvent {
 
   visitlocation: string;
 
-  constructor(location: string) {
+  setLocation(location: string): GameEvent {
     this.visitlocation = location;
+    return this;
   }
 
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+  static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventVisit);
     let r = /visit:(.*)/;
     return !!(event.visitlocation && safeCapture(rule.trigger, r, 1) === event.visitlocation);
   }
 
 }
+GameEvent.register(GameEventVisit);
 
-export class GameEventTooFar {
-
-  toofarlocation: string;
-
-  constructor(location: string) {
-    this.toofarlocation = location;
-  }
-
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
-    let event = (play.event as GameEventTooFar);
-    let r = /toofar:(.*)/;
-    return !!(event.toofarlocation && safeCapture(rule.trigger, r, 1) === event.toofarlocation);
-  }
-
-}
-
-export class GameEventTriggerAction {
+export class GameEventTriggerAction extends GameEvent {
 
   action: string;
 
-  constructor(action: string) {
+  setAction(action: string): GameEventTriggerAction {
     this.action = action;
+    return this;
   }
 
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+  static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventTriggerAction);
     let r = /action:(.*)/;
     return !!(event.action && safeCapture(rule.trigger, r, 1) === event.action);
   }
 
 }
+GameEvent.register(GameEventTriggerAction)
 
-export class GameEventShowPage {
+export class GameEventShowPage extends GameEvent {
 
   page: string;
 
-  constructor(page: string) {
+  setPage(page: string): GameEventShowPage {
     this.page = page;
+    return this;
   }
 
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+  static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventShowPage);
     let r = /page:(.*)/;
     return !!(event.page && safeCapture(rule.trigger, r, 1) === event.page);
   }
 
 }
+GameEvent.register(GameEventShowPage)
 
-export class GameEventSuccessfulChallenge {
-
-  success: string;
-
-  constructor(challenge: string) {
-    this.success = challenge;
-  }
-
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
-    let event = (play.event as GameEventSuccessfulChallenge);
-    let r = /success:(.*)/;
-    return !!(event.success && safeCapture(rule.trigger, r, 1) === event.success);
-  }
-
-}
-
-export class GameEventFailedChallenge {
-
-  failed: string;
-
-  constructor(challenge: string) {
-    this.failed = challenge;
-  }
-
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
-    let event = (play.event as GameEventFailedChallenge);
-    let r = /failed:(.*)/;
-    return !!(event.failed && safeCapture(rule.trigger, r, 1) === event.failed);
-  }
-
-}
-
-export class GameEventQrCode {
+export class GameEventQrCode extends GameEvent {
 
   qrcode: string;
 
-  constructor(qrcode: string) {
+  setCode(qrcode: string): GameEventQrCode {
     this.qrcode = qrcode;
+    return this;
   }
 
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+  static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventQrCode);
     let r = /qrcode:(.*)/;
     return !!(event.qrcode && safeCapture(rule.trigger, r, 1) === event.qrcode);
   }
 
 }
+GameEvent.register(GameEventQrCode)
 
-export class GameEventSubmitForm {
+export class GameEventSubmitForm extends GameEvent {
 
   tag: string;
-  form: {[id: string]: any};
+  form: {[id: string]: any} = {};
 
-  constructor() {
-    this.form = {};
-  }
-
-  static validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+  static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventSubmitForm);
     let r = /submit:(.*)/;
     return !!(event.tag && safeCapture(rule.trigger, r, 1) === event.tag);
   }
 
 }
+GameEvent.register(GameEventSubmitForm)
 
 export class GameRule {
 
@@ -481,6 +421,26 @@ export class GameConditionNoBadge extends GameCondition {
     return !play.badges.includes(condition.nobadge);;
   }
   
+}
+
+export class GameConditionSettings extends GameCondition {
+
+  settings?: {[id:string]: string | string[]};
+
+  static valid(condition: GameConditionSettings) {
+    return condition.settings ? true : false;
+  }
+
+  static check(condition: GameConditionSettings, play: GamePlay) : boolean {
+    return Object.keys(condition.settings || {})
+      .filter(k => {
+        IfTypeOf.build()
+        .ifArray((a) => !a.includes(play.settings[k]))
+        .ifString(s => s != play.settings[k])
+        .of(condition.settings && condition.settings[k])
+      }).length == 0 ;
+  }
+
 }
 
 export class GameConditionTag extends GameCondition {
@@ -937,3 +897,4 @@ export class SvgMap {
 export class PlayChange {
   change: string;
 }
+

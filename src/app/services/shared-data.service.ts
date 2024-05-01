@@ -232,12 +232,6 @@ export class SharedDataService {
     this.savePlay();
   }
 
-  tooFarTappa(location: string) {
-    this.pv.tooFar(this.scenario, this.play, location);
-    this.updateGui();
-    this.savePlay();
-  }
-
   checkCondition(condition: GameCondition): boolean {
     return this.pv.checkCondition(condition, this.play, this.scenario);
   }
@@ -268,24 +262,6 @@ export class SharedDataService {
 
   showScanner(scanner: string) {
     this.play.currentScanner = scanner;
-  }
-
-  successfulChallenge() {
-    this.pv.successfulChallenge(this.scenario, this.play);
-    this.updateGui();
-    this.savePlay();
-  }
-
-  failedChallenge() {
-    this.pv.failedChallenge(this.scenario, this.play);
-    this.updateGui();
-    this.savePlay();
-  }
-
-  cancelChallenge() {
-    this.pv.cancelChallenge(this.scenario, this.play);
-    this.updateGui();
-    this.savePlay();
   }
 
   qrCode(code: string): boolean  {
