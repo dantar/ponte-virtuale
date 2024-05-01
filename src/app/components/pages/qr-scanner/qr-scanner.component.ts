@@ -88,29 +88,9 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
   }
 
   handleClickable(event: any) {
-    const target:HTMLElement = event.target;
-    if (target) {
-      const clickable = target.closest(".clickable");
-      if (clickable) {
-        this.doHandleClickable(clickable as HTMLElement);
-      }
-    }
-  }
-
-  private doHandleClickable(clickable: HTMLElement) {
-    Optional.ifPresent(
-      clickable.getAttribute('data-close'), 
-      (close) => {
-        this.action.stop();
-        this.event.emit('close');
-      }
-    );
-    Optional.ifPresent(
-      clickable.getAttribute('data-camera'), 
-      (camera) => {
-        this.toggleCamera();
-      }
-    );
+    this.clickable.handleClickable(event.target);
+    this.clickable.handleTarget(event.target, 'data-close', (a) => this.event.emit('close'));
+    this.clickable.handleTarget(event.target, 'data-camera', (a) => this.toggleCamera());
   }
 
 }

@@ -1,8 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { GameRepositoryService } from 'src/app/services/game-repository.service';
+import { ClickableHandlerService } from 'src/app/services/clickable-handler.service';
 import { GameEffectStory, GamePlayStory } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
-import { Optional } from 'src/app/services/utils';
 
 @Component({
   selector: 'app-show-story',
@@ -16,35 +15,21 @@ export class ShowStoryComponent implements OnInit {
   loading: boolean;
   html: string;
 
-  constructor(private repository: GameRepositoryService, public shared: SharedDataService) {}
+  constructor(
+    public shared: SharedDataService,
+    private clickable: ClickableHandlerService,
+    ) {}
 
   ngOnInit() {
   }
 
   handleClickable(event: any) {
-    console.log('handleClickable', event);
-    const clickable = event.target.closest(".clickable");
-    Optional.ifPresent(
-      clickable.getAttribute('data-action'), 
-      (action) => this.shared.triggerAction(action)
-    );
-    Optional.ifPresent(
-      clickable.getAttribute('data-close'), 
-      (close) => this.chiudi()
-    );
-    Optional.ifPresent(
-      clickable.getAttribute('data-more'), 
-      (more) => {
-        this.chiudi();
-        this.shared.resolveEffect({story: more} as GameEffectStory);
-      }
-    );
-    Optional.ifPresent(
-      clickable.getAttribute('data-page'), 
-      (page) => {
-        this.shared.showPage(page);
-      }
-    );
+    this.clickable.handleClickable(event.target);
+    this.clickable.handleTarget(event.target, 'data-close', (a) => this.chiudi());
+    this.clickable.handleTarget(event.target, 'data-more', (a) => {
+      this.chiudi();
+      this.shared.resolveEffect({story: a as string} as GameEffectStory);
+    });
   }
 
   chiudi() {

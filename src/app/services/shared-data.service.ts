@@ -266,7 +266,7 @@ export class SharedDataService {
     this.savePlay();
   }
 
-  showScanner(scanner: any) {
+  showScanner(scanner: string) {
     this.play.currentScanner = scanner;
   }
 
