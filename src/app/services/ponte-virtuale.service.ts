@@ -218,6 +218,7 @@ export class GameScenario {
   map: GameLayerMap
   //layers: GameLayer[];
   pages?: GamePage[];
+  scanners?: GameQrScanner[];
   stories: GameEffectStoryItem[];
   badges?: GameBadge[];
   stylesheet?: string | string[];
@@ -674,6 +675,17 @@ export class GameEffectShowPage extends GameEffect {
 }
 GameEffect.register(GameEffectShowPage);
 
+export class GameEffectQrScanner extends GameEffect {
+  scanner: string;
+  static override run(effect: GameEffectQrScanner, scenario: GameScenario, play: GamePlay) {
+    play.currentScanner = effect.scanner;
+  }
+  static override valid(effect: GameEffectQrScanner) {
+    return effect.scanner ? true : false;
+  }
+}
+GameEffect.register(GameEffectQrScanner);
+
 export class GameEffectRoute extends GameEffect {
   route: string[];
   static override run(effect: GameEffectRoute, scenario: GameScenario, play: GamePlay) {
@@ -723,6 +735,7 @@ export class GamePlay {
   
   id: string;
   currentPage?: string;
+  currentScanner?: string;
 
   story: GamePlayStory[];
   badges: string[];
@@ -771,6 +784,13 @@ export class GameLayerIcon {
 export class GamePage {
   id: string;
   code: 'map' | 'html' | 'svg';
+  url: string;
+  template?: string;
+  data?: {[id:string]: number|string};
+}
+
+export class GameQrScanner {
+  id: string;
   url: string;
   template?: string;
   data?: {[id:string]: number|string};

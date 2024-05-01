@@ -77,4 +77,18 @@ export class MainLandingComponent implements OnInit, OnDestroy {
     this.shared.startGame();
   }
 
+  qrcode(code: string) {
+    this.shared.clearScanner();
+    this.shared.qrCode(code);
+  }
+
+  handleScannerEvent(event: string) {
+    switch (event) {
+      case 'close':
+      default:
+        this.shared.clearScanner();
+        break
+    }
+  }
+
 }

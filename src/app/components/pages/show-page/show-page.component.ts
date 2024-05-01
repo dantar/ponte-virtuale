@@ -87,6 +87,12 @@ export class ShowPageComponent implements OnInit, OnChanges {
         this.shared.showStory(story);
       }
     );
+    Optional.ifPresent(
+      clickable.getAttribute('data-scanner'), 
+      (scanner) => {
+        this.shared.showScanner(scanner);
+      }
+    );
   }
 
   chiudi() {

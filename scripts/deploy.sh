@@ -13,8 +13,9 @@ cd -
 TARGET=atlante
 DEST=atlante.elabor.biz:dist/
 INCLUDEZIP=false
+PROJECT=ponte-virtuale
 die() { echo "$*" 1>&2 ; exit 1; }
-while getopts h: flag;
+while getopts h:p: flag;
 do
     echo "FLAG ${flag}"
     case "${flag}" in
@@ -31,13 +32,17 @@ do
                 *) die "opzione invalida: ${OPTARG}";;
             esac
         ;;
+        p) PROJECT=${OPTARG} ;;
         *) die "opzione invalida: ${flag}";;
     esac
 done
 
 cd $MAINDIR
-ng build --base-href=./ --configuration=production && \
-rsync --delete -varzh $MAINDIR/dist/* $DEST
+
+ng build --base-href=./ --configuration=production
+TMPDIR=`mktemp -d`
+mv $MAINDIR/dist/ponte-virtuale ${TMPDIR}/${PROJECT}
+rsync --delete -varzh ${TMPDIR}/${PROJECT} $DEST
 
 if [ $INCLUDEZIP = "true" ]; then
     cd $MAINDIR/dist/ponte-virtuale && \

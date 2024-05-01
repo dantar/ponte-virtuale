@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Option, GamePlay, GamePlayStory, GameScenario, PonteVirtualeService, GameCondition, GameEffect, GameOption, GamePage, GameEvent} from './ponte-virtuale.service';
+import { Option, GamePlay, GamePlayStory, GameScenario, PonteVirtualeService, GameCondition, GameEffect, GameOption, GamePage, GameEvent, GameQrScanner} from './ponte-virtuale.service';
 import { Subject, lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -20,6 +20,16 @@ export class SharedDataService {
     throw new Error(`Page not found ${id}`);
   }
 
+  getScanner(id: string): GameQrScanner {
+    if (this.scenario && this.scenario.scanners) {
+      const index = this.scenario.scanners.map(p => p.id).indexOf(id);
+      if (index >= 0) {
+        return this.scenario.scanners[index];
+      }
+    }
+    throw new Error(`Page not found ${id}`);
+  }
+
   gameUrl: string | null;
   scenario: GameScenario;
   play: GamePlay;
@@ -27,6 +37,7 @@ export class SharedDataService {
   options: GameOption | null;
 
   currentPage: GamePage;
+  qrscanner: GameQrScanner;
 
   private playChangedSource = new Subject<PlayChange>();
   playChangedOb = this.playChangedSource.asObservable();
@@ -187,6 +198,11 @@ export class SharedDataService {
     }
   }
 
+  clearScanner() {
+    this.play.currentScanner = undefined;
+    this.savePlay();
+  }
+
   findZoomTo() {
     if (this.play.zoomTo) {
       this.zoomMapToSource.next(this.play.zoomTo);
@@ -248,6 +264,10 @@ export class SharedDataService {
     this.pv.showStory(this.scenario, this.play, story);
     this.updateGui();
     this.savePlay();
+  }
+
+  showScanner(scanner: any) {
+    this.play.currentScanner = scanner;
   }
 
   successfulChallenge() {

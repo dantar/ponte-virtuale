@@ -1,0 +1,22 @@
+<div class="fulldiv scanner-box loading-{{action.isLoading}}">
+    <ngx-scanner-qrcode #action="scanner" (event)="onScannerEvent($event)"></ngx-scanner-qrcode>
+</div>
+<app-game-html *ngIf="qrScanner && qrScanner.url" [url]="qrScanner.url" [template]="qrScanner.template" [data]="qrScanner.data" (clickable)="handleClickable($event)"></app-game-html>
+
+<div *ngIf="!qrScanner || !qrScanner.url" class="fulldiv">
+    <div>
+        <div>{{action.deviceIndexActive}}</div>
+        <div *ngFor="let device of devs">
+            {{device.kind}} / {{device.label}}
+        </div>
+        <!-- data  -->
+        <span>{{ action.data.value | json }}</span><!-- value -->
+        <span>{{ action.data | async | json }}</span><!-- async -->
+        
+        <p *ngIf="action.isLoading">⌛ Loading...</p>
+        
+        <!-- start -->
+        <button (click)="action.isStart ? action.stop() : action.start()">{{action.isStart ? 'Stop' : 'Start'}}</button>
+        <button (click)="toggleCamera()">Toggle</button>
+    </div>
+</div>

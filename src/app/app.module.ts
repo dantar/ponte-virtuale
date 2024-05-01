@@ -18,6 +18,10 @@ import { GameConfigComponent } from './components/pages/game-config/game-config.
 import { ShowPageComponent } from './components/pages/show-page/show-page.component';
 import { PlayNewGameComponent } from './components/pages/play-new-game/play-new-game.component';
 import { GameHtmlComponent } from './components/gui/game-html/game-html.component';
+import { NgxScannerQrcodeModule, LOAD_WASM } from 'ngx-scanner-qrcode';
+import { QrScannerComponent } from './components/pages/qr-scanner/qr-scanner.component';
+
+LOAD_WASM().subscribe();
 
 @NgModule({
   declarations: [
@@ -32,14 +36,16 @@ import { GameHtmlComponent } from './components/gui/game-html/game-html.componen
     GameConfigComponent,
     ShowPageComponent,
     PlayNewGameComponent,
-    GameHtmlComponent
+    GameHtmlComponent,
+    QrScannerComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
-    LeafletModule
+    LeafletModule,
+    NgxScannerQrcodeModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

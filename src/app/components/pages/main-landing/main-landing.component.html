@@ -15,7 +15,7 @@
         </ng-container>
 
     </div>
-
+    <app-qr-scanner *ngIf="shared.play.currentScanner" [scanner]="shared.play.currentScanner" (qrcode)="qrcode($event)" (event)="handleScannerEvent($event)"></app-qr-scanner>
 </div>
 <div *ngIf="!shared.scenario">
     Gioco non inizializzato. Scansiona un QR code di gioco o utilizza il suo link.
