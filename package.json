@@ -20,6 +20,7 @@
     "@angular/router": "^16.1.0",
     "@asymmetrik/ngx-leaflet": "^16.0.1",
     "animejs": "^3.2.2",
+    "html-to-image": "^1.11.11",
     "leaflet": "^1.9.4",
     "ngx-scanner-qrcode": "^1.6.9",
     "rxjs": "~7.8.0",

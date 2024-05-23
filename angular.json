@@ -76,6 +76,10 @@
             },
             "development": {
               "browserTarget": "ponte-virtuale:build:development"
+            },
+            "options": {
+              "browserTarget": "ponte-virtuale:build:development",
+              "ssl": true
             }
           },
           "defaultConfiguration": "development"

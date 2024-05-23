@@ -49,6 +49,7 @@ export class MainLandingComponent implements OnInit, OnDestroy {
     // Set type of the link item and path to the css file
     this.renderer.setProperty(link, 'rel', 'stylesheet');
     this.renderer.setProperty(link, 'href', this.shared.getGameResourceUrl(cssUrl));
+    this.renderer.setProperty(link, 'crossorigin', 'anonymous');
     this.cssLinks.push(link);
   }
 

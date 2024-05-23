@@ -31,10 +31,14 @@ export class ShowPageComponent implements OnInit, OnChanges {
 
   private refreshHtml() {
     this.fullpage = this.shared.getPage(this.page);
+    const fundamentals = {
+      id: this.fullpage.id,
+      uri: document.baseURI,
+    };
     if (this.fullpage.data) {
-      this.fullpage.data = {...{id: this.fullpage.id}, ...this.fullpage.data};
+      this.fullpage.data = {...fundamentals, ...this.fullpage.data};
     } else {
-      this.fullpage.data = {id: this.fullpage.id};
+      this.fullpage.data = fundamentals;
     }
   }
 

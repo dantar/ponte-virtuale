@@ -45,7 +45,7 @@ mv $MAINDIR/dist/ponte-virtuale ${TMPDIR}/${PROJECT}
 rsync --delete -varzh ${TMPDIR}/${PROJECT} $DEST
 
 if [ $INCLUDEZIP = "true" ]; then
-    cd $MAINDIR/dist/ponte-virtuale && \
+    cd ${TMPDIR}/${PROJECT} && \
     zip -r /tmp/ponte-virtuale.zip * && \
     scp /tmp/ponte-virtuale.zip atlante.elabor.biz:/var/www/html/download
 fi

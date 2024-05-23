@@ -4,6 +4,7 @@ import { Subject, lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ButtonsMenuService } from './buttons-menu.service';
+import { WebShareService } from './web-share.service';
 
 @Injectable({
   providedIn: 'root'
@@ -57,6 +58,7 @@ export class SharedDataService {
     private http: HttpClient,
     public menu: ButtonsMenuService,
     private router: Router,
+    private webshare: WebShareService,
     // LATER private analytics: GoogleAnalyticsService,
   ) { 
     // LATER this.analytics.init(environment.gaMeasurementId);
@@ -313,6 +315,8 @@ export class SharedDataService {
     // to be used with [ngClass]
     let result: {[cl: string]: boolean} = {
       'pv-autoclasses': true,
+      'webshare-enabled': this.webshare.webshareEnabled,
+      'clipboard-enabled': this.webshare.clipboardEnabled,
     };
     this.play.tags.forEach(tag => {
       result[`tag-${tag}`] = true;

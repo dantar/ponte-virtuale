@@ -60,7 +60,10 @@ export class GameHtmlComponent implements OnInit, OnChanges {
   setHtml(html: string) {
     this.html = this.shared.getReplaceResourceUrls(html);
     if (this.data) {
-      Object.keys(this.data).forEach(key => this.html = this.html.replaceAll(`{{${key}}}`, this.data ? ''+this.data[key]: ''));
+      Object.keys(this.data).forEach(key => this.html = this.html
+        .replaceAll(`{{${key}}}`, this.data ? ''+this.data[key]: '')
+        .replaceAll(`__${key}__`, this.data ? ''+this.data[key]: '')
+        );
     }
     this.loading = false;
   }

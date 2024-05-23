@@ -3,6 +3,7 @@ import { Optional } from './utils';
 import { SharedDataService } from './shared-data.service';
 import { GameEventSubmitForm } from './ponte-virtuale.service';
 import { LeafletSettingsService } from './leaflet-settings.service';
+import { WebShareBuilder, WebShareService } from './web-share.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ export class ClickableHandlerService {
   constructor(
     private shared: SharedDataService,
     private leaflet: LeafletSettingsService,
+    private webshare: WebShareService,
   ) { }
 
   handleClickable(target: HTMLElement) {
@@ -67,6 +69,44 @@ export class ClickableHandlerService {
         this.shared.showStory(story as string);
       }
     );
+    Optional.ifPresent(
+      clickable.getAttribute('data-copy-snapshot'), 
+      (attr) => {
+        const element = document.querySelector(attr as string) as HTMLElement;
+        if (element) {
+          this.webshare.copySnapshot(element)
+          .then(() => console.log('Copiato nella clipboard!'))
+          .catch((error) => console.log('Errore clipboard snapshot', error));
+        }
+      }
+    );
+
+    const builder = new WebShareBuilder();
+    Optional.ifPresent(
+      clickable.getAttribute('data-webshare-snapshot'), 
+      (attr) => {
+        const element = document.querySelector(attr as string) as HTMLElement;
+        if (element) {
+          builder.setSnapShot(element);
+        }
+      }
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-webshare-text'), 
+      (attr) => {
+        builder.setText(attr as string);
+      }
+    );
+    Optional.ifPresent(
+      clickable.getAttribute('data-webshare-url'), 
+      (attr) => {
+        builder.setUrl(attr as string);
+      }
+    );
+    if (builder.isValid()) {
+      this.webshare.webShareData(builder);
+    }
+    
     Optional.ifPresent(
       clickable.getAttribute('data-scanner'), 
       (scanner) => {
