@@ -1,5 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { IfTypeOf } from 'src/app/services/if-type-of.service';
 import { GamePlayStory, GameScenario } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
@@ -16,8 +17,11 @@ export class MainLandingComponent implements OnInit, OnDestroy {
   private stylesheet?: HTMLLinkElement;
   private cssLinks: HTMLLinkElement[];
 
+  pagename?: string;
+
   constructor(
     public shared: SharedDataService,
+    private route: ActivatedRoute,
     private renderer: Renderer2,
     ) {
 
@@ -32,6 +36,15 @@ export class MainLandingComponent implements OnInit, OnDestroy {
         this.initStylesheet(scenario);
       });
     }
+
+    this.route.params.subscribe(p => {
+      if (p['page']) {
+        this.pagename = p['page'];
+      } else {
+        this.pagename = this.shared.play.currentPage;
+      }
+    });
+
   }
 
   private initStylesheet(scenario: GameScenario) { 

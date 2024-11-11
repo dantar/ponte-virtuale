@@ -26,7 +26,11 @@ export class AppComponent implements OnInit {
     if (! this.shared.play) {
       this.shared.startGame();
     }
-    this.router.navigate(['']);
+    if (this.shared.play.currentPage) {
+      this.router.navigate([this.shared.play.currentPage]);
+    } else {
+      this.router.navigate(['']);
+    }
   }
 
 }

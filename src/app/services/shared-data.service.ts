@@ -197,6 +197,8 @@ export class SharedDataService {
     if (this.play.route) {
       this.router.navigate(this.play.route);
       this.play.route = null;
+    } else if (this.play.currentPage) {
+      this.router.navigate(['page', this.play.currentPage]);
     }
   }
 
