@@ -7,7 +7,7 @@
         <app-leaflet-map *ngIf="shared.scenario.map" [layer]="shared.scenario.map" (clickMarker)="clickMarker($event)"></app-leaflet-map>
 
         <app-show-page *ngIf="pagename" [page]="pagename"></app-show-page>
-
+        <app-show-page *ngIf="!pagename && shared.play && shared.play.currentPage" [page]="shared.play.currentPage"></app-show-page>
         <ng-container *ngFor="let story of shared.play.story; let first = first">
             <div *ngIf="!story.published">
                 <app-show-story [story]="story"></app-show-story>

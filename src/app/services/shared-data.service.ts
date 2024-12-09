@@ -143,6 +143,12 @@ export class SharedDataService {
     this.deletePlay();
   }
 
+  closePage() {
+    this.play.currentPage = undefined;
+    this.savePlay();
+    this.router.navigate(['']);
+  }
+
   closeWindow() {
     window.close();
   }

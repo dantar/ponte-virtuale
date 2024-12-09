@@ -12,7 +12,7 @@ cd -
 
 TARGET=atlante
 DEST=atlante.elabor.biz:dist/
-INCLUDEZIP=false
+INCLUDEZIP=true
 PROJECT=ponte-virtuale
 die() { echo "$*" 1>&2 ; exit 1; }
 while getopts h:p: flag;
@@ -28,6 +28,7 @@ do
                 dantar) 
                     TARGET=${OPTARG}
                     DEST=dantar:html/
+                    INCLUDEZIP=false
                 ;;
                 *) die "opzione invalida: ${OPTARG}";;
             esac

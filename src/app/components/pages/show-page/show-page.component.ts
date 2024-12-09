@@ -48,8 +48,7 @@ export class ShowPageComponent implements OnInit, OnChanges {
   }
 
   chiudi() {
-    this.shared.play.currentPage = undefined;
-    this.shared.savePlay();
+    this.shared.closePage();
   }
 
 }
