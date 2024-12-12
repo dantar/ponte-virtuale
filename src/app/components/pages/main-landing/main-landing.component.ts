@@ -36,15 +36,11 @@ export class MainLandingComponent implements OnInit, OnDestroy {
         this.initStylesheet(scenario);
       });
     }
-
     this.route.params.subscribe(p => {
       if (p['page']) {
         this.pagename = p['page'];
-      } else {
-        this.pagename = this.shared.play.currentPage;
       }
     });
-
   }
 
   private initStylesheet(scenario: GameScenario) { 
