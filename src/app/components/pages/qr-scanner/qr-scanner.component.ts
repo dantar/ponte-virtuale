@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, EventEmitter, Input, NgZone, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { NgxScannerQrcodeComponent, ScannerQRCodeConfig, ScannerQRCodeDevice, ScannerQRCodeResult } from 'ngx-scanner-qrcode';
+import { CameraSettingsService } from 'src/app/services/camera-settings.service';
 import { ClickableHandlerService } from 'src/app/services/clickable-handler.service';
 import { GameQrScanner } from 'src/app/services/ponte-virtuale.service';
 import { SharedDataService } from 'src/app/services/shared-data.service';
@@ -35,6 +36,7 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
     private ng: NgZone,
     private shared: SharedDataService,
     private clickable: ClickableHandlerService,
+    private camera: CameraSettingsService,
     ) {
   
   }
@@ -66,6 +68,10 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
     if (res) {
       this.action.start().subscribe((device: InputDeviceInfo) => {
         console.log("using device", device);
+        let deviceId = this.camera.qrDeviceId();
+        if (deviceId) {
+          this.action.playDevice(deviceId).subscribe(pd => console.log('pd', pd));
+        }
       });
     }
   }
@@ -79,7 +85,9 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
 
   toggleCamera(): void {
     let index = this.action.deviceIndexActive >= (this.devs.length -1 ) ? 0 : this.action.deviceIndexActive+1 ;
-    this.action.playDevice(this.devs[index].deviceId).subscribe(pd => console.log('pd', pd));
+    let deviceId = this.devs[index].deviceId;
+    this.camera.saveQrDeviceId(deviceId);
+    this.action.playDevice(deviceId).subscribe(pd => console.log('pd', pd));
   }
 
   cancelScan(): void {

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedDataService } from './services/shared-data.service';
+import { CameraSettingsService } from './services/camera-settings.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -12,6 +13,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     private shared: SharedDataService,
+    private camera: CameraSettingsService,
     private router: Router,
   ) {}
 
@@ -20,6 +22,7 @@ export class AppComponent implements OnInit {
       this.startOrResumePlay();
     });
     this.shared.initGame();
+    this.camera.initSettings();
   }
 
   private startOrResumePlay() {
