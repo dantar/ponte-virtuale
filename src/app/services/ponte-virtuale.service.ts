@@ -183,7 +183,8 @@ export class PonteVirtualeService {
 export class GameScenario {
 
   id: string;
-  map: GameLayerMap
+  map: GameLayerMap;
+  desktop?: string;
   //layers: GameLayer[];
   pages?: GamePage[];
   scanners?: GameQrScanner[];
@@ -597,6 +598,17 @@ export class GameEffectTag extends GameEffect {
   }
 }
 GameEffect.register(GameEffectTag);
+
+export class GameEffectUntag extends GameEffect {
+  untag: string;
+  static override run(effect: GameEffectUntag, scenario: GameScenario, play: GamePlay) {
+    if (play.tags.includes(effect.untag)) play.tags.splice(play.tags.indexOf(effect.untag), 1);
+  }
+  static override valid(effect: GameEffectUntag) {
+    return effect.untag ? true : false;
+  }
+}
+GameEffect.register(GameEffectUntag);
 
 export class GameEffectChallenge extends GameEffect {
   challenge: string;
