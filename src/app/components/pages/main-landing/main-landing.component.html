@@ -5,7 +5,7 @@
     <div *ngIf="shared.play" [class]="shared.statusCssClasses()">
 
         <app-leaflet-map *ngIf="shared.scenario.map" [layer]="shared.scenario.map" (clickMarker)="clickMarker($event)"></app-leaflet-map>
-
+        <app-show-page *ngIf="shared.scenario.desktop" [page]="shared.scenario.desktop"></app-show-page>
         <app-show-page *ngIf="pagename" [page]="pagename"></app-show-page>
         <app-show-page *ngIf="!pagename && shared.play && shared.play.currentPage" [page]="shared.play.currentPage"></app-show-page>
         <ng-container *ngFor="let story of shared.play.story; let first = first">
@@ -13,9 +13,8 @@
                 <app-show-story [story]="story"></app-show-story>
             </div>
         </ng-container>
-
+        <app-qr-scanner *ngIf="shared.play.currentScanner" [scanner]="shared.play.currentScanner" (qrcode)="qrcode($event)" (event)="handleScannerEvent($event)"></app-qr-scanner>
     </div>
-    <app-qr-scanner *ngIf="shared.play.currentScanner" [scanner]="shared.play.currentScanner" (qrcode)="qrcode($event)" (event)="handleScannerEvent($event)"></app-qr-scanner>
 </div>
 <div *ngIf="!shared.scenario">
     Gioco non inizializzato. Scansiona un QR code di gioco o utilizza il suo link.

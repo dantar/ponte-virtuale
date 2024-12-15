@@ -11,6 +11,10 @@ import { WebShareService } from './web-share.service';
 })
 export class SharedDataService {
 
+  getReplaceValues(html: string): string {
+    return this.play ? GamePlay.replaceValues(this.play, html) : html;
+  }
+
   getPage(id: string): GamePage {
     if (this.scenario && this.scenario.pages) {
       const index = this.scenario.pages.map(p => p.id).indexOf(id);

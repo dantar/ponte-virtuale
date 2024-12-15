@@ -274,7 +274,7 @@ export class GameEventVisit extends GameEvent {
   static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventVisit);
     let r = /visit:(.*)/;
-    return !!(event.visitlocation && safeCapture(rule.trigger, r, 1) === event.visitlocation);
+    return !!(event.visitlocation && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.visitlocation);
   }
 
 }
@@ -292,7 +292,7 @@ export class GameEventTriggerAction extends GameEvent {
   static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventTriggerAction);
     let r = /action:(.*)/;
-    return !!(event.action && safeCapture(rule.trigger, r, 1) === event.action);
+    return !!(event.action && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.action);
   }
 
 }
@@ -310,7 +310,7 @@ export class GameEventShowPage extends GameEvent {
   static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventShowPage);
     let r = /page:(.*)/;
-    return !!(event.page && safeCapture(rule.trigger, r, 1) === event.page);
+    return !!(event.page && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.page);
   }
 
 }
@@ -328,7 +328,7 @@ export class GameEventQrCode extends GameEvent {
   static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventQrCode);
     let r = /qrcode:(.*)/;
-    return !!(event.qrcode && safeCapture(rule.trigger, r, 1) === event.qrcode);
+    return !!(event.qrcode && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.qrcode);
   }
 
 }
@@ -342,7 +342,7 @@ export class GameEventSubmitForm extends GameEvent {
   static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
     let event = (play.event as GameEventSubmitForm);
     let r = /submit:(.*)/;
-    return !!(event.tag && safeCapture(rule.trigger, r, 1) === event.tag);
+    return !!(event.tag && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.tag);
   }
 
 }
@@ -591,7 +591,8 @@ GameEffect.register(GameEffectBadge);
 export class GameEffectTag extends GameEffect {
   tag: string;
   static override run(effect: GameEffectTag, scenario: GameScenario, play: GamePlay) {
-    if (!play.tags.includes(effect.tag)) play.tags.push(effect.tag);
+    let t = GamePlay.replaceValues(play, effect.tag);
+    if (!play.tags.includes(t)) play.tags.push(t);
   }
   static override valid(effect: GameEffectTag) {
     return effect.tag ? true : false;
@@ -602,7 +603,8 @@ GameEffect.register(GameEffectTag);
 export class GameEffectUntag extends GameEffect {
   untag: string;
   static override run(effect: GameEffectUntag, scenario: GameScenario, play: GamePlay) {
-    if (play.tags.includes(effect.untag)) play.tags.splice(play.tags.indexOf(effect.untag), 1);
+    let t = GamePlay.replaceValues(play, effect.untag);
+    if (play.tags.includes(t)) play.tags.splice(play.tags.indexOf(t), 1);
   }
   static override valid(effect: GameEffectUntag) {
     return effect.untag ? true : false;
@@ -704,6 +706,25 @@ export class GameEffectOptions extends GameEffect {
 GameEffect.register(GameEffectOptions);
 
 export class GamePlay {
+
+  static replaceValues(play: GamePlay, html: string): string {
+    let t = html;
+    if (play && play.settings) {
+      let s = play.settings as any;
+      Object.keys(s).forEach(k => t = t
+        .replaceAll(`{{${k}}}`, s[k])
+        .replaceAll(`__${k}__`, s[k])
+      );
+    }
+    if (play && play.variables) {
+      let s = play.variables as any;
+      Object.keys(s).forEach(k => t = t
+        .replaceAll(`{{${k}}}`, s[k])
+        .replaceAll(`__${k}__`, s[k])
+      );
+    }
+    return t;
+  }
   
   id: string;
   currentPage?: string;
