@@ -7,9 +7,13 @@ import { Observable, lastValueFrom, take } from 'rxjs';
 })
 export class GameRepositoryService {
 
+  uuid: string;
+
   constructor(
     private http: HttpClient,
-  ) { }
+  ) { 
+    this.uuid = crypto.randomUUID();
+  }
 
   async fetchResource(uri: string): Promise<string> {
     const xx = this.http
@@ -20,7 +24,7 @@ export class GameRepositoryService {
 
   observeResource(uri: string): Observable<string> {
     return this.http
-    .get(uri, {responseType: 'text'});
+    .get(uri, {responseType: 'text', params: {uuid: this.uuid}});
   }
 
 }

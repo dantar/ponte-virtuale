@@ -17,6 +17,7 @@ export class PonteVirtualeService {
   runScenarioRules(scenario: GameScenario, play: GamePlay) {
     console.log("runScenarioRules", scenario, play);
     // TODO: make a rules runner, with session variables and recording effects to apply at the end of the rules run
+    play.clipboard = {}; // reset clipboard
     scenario.rules.forEach(rule => this.checkAndRunRule(rule, scenario, play));
   }
 
@@ -112,6 +113,9 @@ export class PonteVirtualeService {
       // DEBT refactor this so that each class takes care of its own code
       if (GameConditionFormValue.valid(condition as GameConditionFormValue)) {
         check = check && GameConditionFormValue.check(condition as GameConditionFormValue, play);
+      }
+      if (GameConditionSettingsValue.valid(condition as GameConditionSettingsValue)) {
+        check = check && GameConditionSettingsValue.check(condition as GameConditionSettingsValue, play);
       }
       if (GameConditionBadge.valid(condition as GameConditionBadge)) {
         check = check && GameConditionBadge.check(condition as GameConditionBadge, play);
@@ -235,6 +239,17 @@ function safeCapture(text: string, re: RegExp, index: number): string | null {
 }
 
 export class GameEvent {
+  static runRegex(event: GameEvent, regex: string): {[key: string]: string} {
+    return {};
+  }
+  static runAllRegex(event: GameEvent, regex: string): {[key: string]: string} {
+    let result:{[key: string]: string} = {};
+    for (let index = 0; index < this._events.length; index++) {
+      const element = this._events[index];
+      result = {...result, ...element.runRegex(event, regex)};
+    }
+    return result;
+  }
   static _events: typeof GameEvent[] = [];
   static register(eventClass: typeof GameEvent) {
     this._events.push(eventClass);
@@ -294,6 +309,13 @@ export class GameEventTriggerAction extends GameEvent {
     let r = /action:(.*)/;
     return !!(event.action && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.action);
   }
+  static override runRegex(event: GameEventTriggerAction, re: string): {[key: string]: string} {
+    let match = new RegExp(re).exec(event.action);
+    if (match && match.groups) {
+      return match.groups;
+    }
+    return {};
+  }
 
 }
 GameEvent.register(GameEventTriggerAction)
@@ -330,6 +352,13 @@ export class GameEventQrCode extends GameEvent {
     let r = /qrcode:(.*)/;
     return !!(event.qrcode && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.qrcode);
   }
+  static override runRegex(event: GameEventQrCode, re: string): {[key: string]: string} {
+    let match = new RegExp(re).exec(event.qrcode);
+    if (match && match.groups) {
+      return match.groups;
+    }
+    return {};
+  }
 
 }
 GameEvent.register(GameEventQrCode)
@@ -343,6 +372,13 @@ export class GameEventSubmitForm extends GameEvent {
     let event = (play.event as GameEventSubmitForm);
     let r = /submit:(.*)/;
     return !!(event.tag && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.tag);
+  }
+  static override runRegex(event: GameEventSubmitForm, re: string): {[key: string]: string} {
+    let match = new RegExp(re).exec(event.tag);
+    if (match && match.groups) {
+      return match.groups;
+    }
+    return {};
   }
 
 }
@@ -378,8 +414,31 @@ export class GameConditionFormValue extends GameCondition {
 
   static check(condition: GameConditionFormValue, play: GamePlay) : boolean {
     const event = play.event as GameEventSubmitForm;
-    console.log(event && event.form && event.form[condition.formvalue]);
-    return event.form && event.form[condition.formvalue] == condition.equals;
+    if (condition.equals && event.form) {
+      let t = GamePlay.replaceValues(play, condition.equals);
+      Object.keys(event.form).forEach(k => t = t
+        .replaceAll(`{{${k}}}`, event.form[k])
+        .replaceAll(`__${k}__`, event.form[k])
+      );
+      return event.form && event.form[condition.formvalue] == t;
+    }
+    return false;
+  }
+
+}
+
+export class GameConditionSettingsValue extends GameCondition {
+
+  setting: string;
+  equals?: string;
+
+  static valid(condition: GameConditionSettingsValue) {
+    return condition.setting ? true : false;
+  }
+
+  static check(condition: GameConditionSettingsValue, play: GamePlay) : boolean {
+    let v = play.settings[condition.setting];
+    return (v ? GamePlay.replaceValues(play, v): '') == condition.equals;
   }
 
 }
@@ -452,7 +511,7 @@ export class GameConditionTag extends GameCondition {
   }
 
   static check(condition: GameConditionTag, play: GamePlay) : boolean {
-    return play.tags.includes(condition.tag);
+    return play.tags.includes(GamePlay.replaceValues(play, condition.tag));
   }
 
 }
@@ -465,7 +524,7 @@ export class GameConditionNoTag extends GameCondition {
   }
 
   static check(condition: GameConditionNoTag, play: GamePlay) : boolean {
-    return !play.tags.includes(condition.noTag);
+    return !play.tags.includes(GamePlay.replaceValues(play, condition.noTag));
   }
   
 }
@@ -524,6 +583,7 @@ export class GameConditionOr extends GameCondition {
 
 export class GameEffect {
   condition?: GameCondition;
+  more?: GameEffect | GameEffect[];
   static _effects: typeof GameEffect[] = [];
   static register(effectClass: typeof GameEffect) {
     this._effects.push(effectClass);
@@ -547,7 +607,11 @@ export class GameEffectSettings extends GameEffect {
     if (!play.settings) {
       play.settings = {};
     }
-    play.settings = {...play.settings, ...effect.settings};
+    let more: {[id: string]: string} = {};
+    Object.keys(effect.settings).forEach(k =>
+      more[GamePlay.replaceValues(play, k)] = GamePlay.replaceValues(play, effect.settings[k])
+    );
+    play.settings = {...play.settings, ...more};
   }
   static override valid(effect: GameEffectSettings) {
     return effect.settings ? true : false;
@@ -555,11 +619,29 @@ export class GameEffectSettings extends GameEffect {
 }
 GameEffect.register(GameEffectSettings);
 
+export class GameEffectClipboard extends GameEffect {
+  clipboard: {regex?: string};
+  static override run(effect: GameEffectClipboard, scenario: GameScenario, play: GamePlay) {
+    if (!play.clipboard) {
+      play.clipboard = {};
+    }
+    if (effect.clipboard.regex) {
+      let captures = GameEvent.runAllRegex(play.event, effect.clipboard.regex);
+      //let captures = new RegExp(effect.clipboard.regex).exec(GameEvent.runRegex(play.event, effect.clipboard.regex));
+      play.clipboard = {...play.clipboard, ...captures};
+    }
+  }
+  static override valid(effect: GameEffectClipboard) {
+    return effect.clipboard ? true : false;
+  }
+}
+GameEffect.register(GameEffectClipboard);
+
 export class GameEffectStory extends GameEffect {
   story: string | GameEffectStoryItem[];
   static override run(effect: GameEffectStory, scenario: GameScenario, play: GamePlay) {
     new IfTypeOf()
-    .ifString((s) => play.story.push(({origin: GameScenario.getStory(scenario, s), published: false} as GamePlayStory)))
+    .ifString((s) => play.story.push(({origin: GameScenario.getStory(scenario, GamePlay.replaceValues(play, s)), published: false} as GamePlayStory)))
     .ifArray<GameEffectStoryItem>( (a) => a.forEach(element => play.story.push(({origin: element, published: false} as GamePlayStory))) )
     .of(effect.story);
   }
@@ -589,10 +671,16 @@ export class GameEffectBadge extends GameEffect {
 GameEffect.register(GameEffectBadge);
 
 export class GameEffectTag extends GameEffect {
-  tag: string;
+  tag: string | string[];
   static override run(effect: GameEffectTag, scenario: GameScenario, play: GamePlay) {
-    let t = GamePlay.replaceValues(play, effect.tag);
-    if (!play.tags.includes(t)) play.tags.push(t);
+    let _addTag = (play: GamePlay, tag: string) => {
+      let t = GamePlay.replaceValues(play, tag);
+      if (!play.tags.includes(t)) play.tags.push(t);
+    };
+    IfTypeOf.build()
+    .ifArray<string>((a) => a.forEach(t => _addTag(play, t)))
+    .ifString(t => _addTag(play, t))
+    .of(effect.tag)
   }
   static override valid(effect: GameEffectTag) {
     return effect.tag ? true : false;
@@ -601,10 +689,16 @@ export class GameEffectTag extends GameEffect {
 GameEffect.register(GameEffectTag);
 
 export class GameEffectUntag extends GameEffect {
-  untag: string;
+  untag: string | string[];
   static override run(effect: GameEffectUntag, scenario: GameScenario, play: GamePlay) {
-    let t = GamePlay.replaceValues(play, effect.untag);
-    if (play.tags.includes(t)) play.tags.splice(play.tags.indexOf(t), 1);
+    let _removeTag = (play: GamePlay, tag: string) => {
+      let t = GamePlay.replaceValues(play, tag);
+      if (play.tags.includes(t)) play.tags.splice(play.tags.indexOf(t), 1);
+    };
+    IfTypeOf.build()
+    .ifArray<string>((a) => a.forEach(t => _removeTag(play, t)))
+    .ifString(t => _removeTag(play, t))
+    .of(effect.untag)
   }
   static override valid(effect: GameEffectUntag) {
     return effect.untag ? true : false;
@@ -709,6 +803,16 @@ export class GamePlay {
 
   static replaceValues(play: GamePlay, html: string): string {
     let t = html;
+    if (play && (play.score != undefined)) {
+      t = t.replaceAll(`{{score}}`, ''+play.score).replaceAll(`__score__`, ''+play.score);
+    }
+    if (play && play.clipboard) {
+      let s = play.clipboard as any;
+      Object.keys(s).forEach(k => t = t
+        .replaceAll(`{{${k}}}`, s[k])
+        .replaceAll(`__${k}__`, s[k])
+      );
+    }
     if (play && play.settings) {
       let s = play.settings as any;
       Object.keys(s).forEach(k => t = t
@@ -735,6 +839,7 @@ export class GamePlay {
   options: string[];
   score: number;
   variables: {[code: string]: number|string};
+  clipboard: {[code: string]: string};
   zoomTo: string | null;
   tags: string[];
   event: GameEvent;
@@ -751,6 +856,7 @@ export class GamePlay {
     this.challenge = null;
     this.route = null;
     this.settings = {};
+    this.clipboard = {};
   }
 }
 

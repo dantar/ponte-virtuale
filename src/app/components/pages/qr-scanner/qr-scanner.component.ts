@@ -78,9 +78,13 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
 
   onScannerEvent(results: ScannerQRCodeResult[]) {
     if (results.length) {
-      this.action.stop();
-      this.qrcode.emit(results[0].value);
+      this.successWithCode(results[0].value);
     };
+  }
+
+  private successWithCode(value: string) {
+      this.action.stop();
+      this.qrcode.emit(value);
   }
 
   toggleCamera(): void {
@@ -99,6 +103,15 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
     this.clickable.handleClickable(event.target);
     this.clickable.handleTarget(event.target, 'data-close', (a) => this.cancelScan());
     this.clickable.handleTarget(event.target, 'data-camera', (a) => this.toggleCamera());
+    this.clickable.handleTarget(event.target, 'data-override', (a) => this.override(a));
+  }
+
+  override(a: string | null): void {
+    console.log('override:', a);
+    if (a) {
+      let input:HTMLInputElement = document.getElementById(a) as HTMLInputElement;
+      this.successWithCode(input.value);
+    }
   }
 
 }

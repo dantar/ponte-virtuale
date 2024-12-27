@@ -16,6 +16,7 @@ export class MainLandingComponent implements OnInit, OnDestroy {
 
   private stylesheet?: HTMLLinkElement;
   private cssLinks: HTMLLinkElement[];
+  cssHtml: string[];
 
   pagename?: string;
 
@@ -29,6 +30,7 @@ export class MainLandingComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cssLinks = [];
+    this.cssHtml = [];
     if (this.shared.scenario) {
       this.initStylesheet(this.shared.scenario);
     } else {
@@ -51,6 +53,14 @@ export class MainLandingComponent implements OnInit, OnDestroy {
   }
 
   private pushStylesheet(cssUrl: string) { 
+    if (cssUrl.endsWith('.html')) {
+      this.pushStylesheetAsHtml(cssUrl);
+    } else {
+      this.pushStylesheetAsLink(cssUrl);
+    }
+  }
+
+  private pushStylesheetAsLink(cssUrl: string) { 
     // Create a link element via Angular's renderer to avoid SSR troubles
     const link = this.renderer.createElement('link') as HTMLLinkElement;
     // Add the style to the head section
@@ -60,6 +70,10 @@ export class MainLandingComponent implements OnInit, OnDestroy {
     this.renderer.setProperty(link, 'href', this.shared.getGameResourceUrl(cssUrl));
     this.renderer.setProperty(link, 'crossorigin', 'anonymous');
     this.cssLinks.push(link);
+  }
+
+  private pushStylesheetAsHtml(cssUrl: string) { 
+    this.cssHtml.push(cssUrl);
   }
 
   public ngOnDestroy(): void {

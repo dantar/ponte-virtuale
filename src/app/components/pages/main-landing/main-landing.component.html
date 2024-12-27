@@ -1,4 +1,5 @@
 <div *ngIf="shared.scenario">
+    <app-game-html *ngFor="let s of cssHtml" [url]="s"></app-game-html>
 
     <div *ngIf="!shared.play" (click)="startGame()">Inizia partita</div>
 
