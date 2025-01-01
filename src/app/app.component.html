@@ -1,1 +1,14 @@
+<div *ngIf="shared.scenario">
+    <app-game-html *ngFor="let s of cssHtml" [url]="s"></app-game-html>
+
+    <div *ngIf="!shared.play" (click)="startGame()">Inizia partita</div>
+
+    <div *ngIf="shared.play" [class]="shared.statusCssClasses()">
+        <app-show-page *ngIf="shared.scenario.desktop" [page]="shared.scenario.desktop"></app-show-page>
+        <app-leaflet-map *ngIf="shared.scenario.map" [layer]="shared.scenario.map" (clickMarker)="clickMarker($event)"></app-leaflet-map>
+    </div>
+</div>
 <router-outlet></router-outlet>
+<div *ngIf="!shared.scenario">
+    Gioco non inizializzato. Scansiona un QR code di gioco o utilizza il suo link.
+</div>
