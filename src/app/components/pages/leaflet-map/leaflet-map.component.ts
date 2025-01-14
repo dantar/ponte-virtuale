@@ -176,10 +176,15 @@ export class LeafletMapComponent implements OnInit {
   }
 
   getLayers(): Leaflet.Layer[] {
+    // console.log('getLayers!');
+    let visibles: string[] = [];
     const markers: Leaflet.Layer[] = this.layer.features
     .filter(f => f.pos)
     .filter(f => !f.condition || this.shared.checkCondition(f.condition))
-    .map(f => this._makeFeature(f).marker)
+    .map(f => {
+      visibles.push(f.id);
+      return this._makeFeature(f).marker
+    })
     ;
     this.layer.features
     .map(f => f as MapFeaturePolyline)
@@ -187,18 +192,14 @@ export class LeafletMapComponent implements OnInit {
     .forEach(f => {
       const mylines = {
         "type": "LineString", 
-        "coordinates": f.polyline
-          .map(id => this.layer.features[this.layer.features.map(f=>f.id).indexOf(id)])
-          .filter(f => !f.condition || this.shared.checkCondition(f.condition))
-          .map(f => f.pos)
-          .map(p => p as number[])
-          .map(p => [p[1], p[0]])
+        "coordinates": this.getPolylineCoordinates(f, visibles)
       } as GeoJSON.GeoJsonObject;
       const myStyle = f.style || {
           "color": "#ff7800",
           "weight": 12,
           "opacity": 0.65
       };
+      //console.log('polyline', mylines);
       //const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions).addTo(map);
       const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions);
       markers.push(gjlayer);
@@ -206,7 +207,24 @@ export class LeafletMapComponent implements OnInit {
     if (this.positionMarker) {
       markers.push(this.positionMarker);
     }
+    //console.log("Markers!", markers);
     return markers;
+  }
+
+  private getPolylineCoordinates(f: MapFeaturePolyline, visibles: string[]): number[][] {
+    let result: number[][] = [];
+    let resolver = IfTypeOf.build()
+    .ifString((id:string) => {
+      if (visibles.includes(id)) {
+        let ll = this.layer.features[this.layer.features.map(f=>f.id).indexOf(id)].pos;
+        if (ll) {
+          result.push([ll[1], ll[0]]);
+        }
+      }
+    })
+    .ifArray((ll: number[]) => result.push([ll[1], ll[0]]));
+    f.polyline.map(i => resolver.of(i));
+    return result;
   }
 
   subscribewatch(callback?: (m:Marker) => void) {

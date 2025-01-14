@@ -803,8 +803,10 @@ export class GamePlay {
 
   static replaceValues(play: GamePlay, html: string): string {
     let t = html;
+    // console.log('replaceValues-start', new Date());
     if (play && (play.score != undefined)) {
       t = t.replaceAll(`{{score}}`, ''+play.score).replaceAll(`__score__`, ''+play.score);
+      // console.log('replaceValues-score', new Date());
     }
     if (play && play.clipboard) {
       let s = play.clipboard as any;
@@ -812,6 +814,7 @@ export class GamePlay {
         .replaceAll(`{{${k}}}`, s[k])
         .replaceAll(`__${k}__`, s[k])
       );
+      // console.log('replaceValues-clipboard', new Date());
     }
     if (play && play.settings) {
       let s = play.settings as any;
@@ -819,6 +822,7 @@ export class GamePlay {
         .replaceAll(`{{${k}}}`, s[k])
         .replaceAll(`__${k}__`, s[k])
       );
+      // console.log('replaceValues-settings', new Date());
     }
     if (play && play.variables) {
       let s = play.variables as any;
@@ -826,6 +830,7 @@ export class GamePlay {
         .replaceAll(`{{${k}}}`, s[k])
         .replaceAll(`__${k}__`, s[k])
       );
+      // console.log('replaceValues-variables', new Date());
     }
     return t;
   }
@@ -1021,7 +1026,7 @@ export class MapLocation {
 }
 
 export class MapFeaturePolyline extends MapLocation{
-  polyline: string[];
+  polyline: (string | number[])[];
   style?: GeoJSONOptions;
 }
 
