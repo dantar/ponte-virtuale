@@ -45,8 +45,8 @@ export class PlayNewGameComponent implements OnInit {
   });
   }
   takeactions(p: Params) {
-    if (p['qr']) {
-      const qr = p['qr'];
+    if (p['action']) {
+      const qr = p['action'];
       this.shared.triggerAction(qr);
     }
   }

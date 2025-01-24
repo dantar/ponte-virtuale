@@ -8,14 +8,15 @@ const routes: Routes = [
   {path:'', component: MainLandingComponent},
   {path:'config', component: GameConfigComponent},
   {path:'go/:folder', component: PlayNewGameComponent},
-  {path:'go/:folder/:qr', component: PlayNewGameComponent},
+  {path:'go/:folder/:action', component: PlayNewGameComponent},
   {path:'play/:folder', component: PlayNewGameComponent},
-  {path:'play/:folder/:qr', component: PlayNewGameComponent},
+  {path:'play/:folder/:action', component: PlayNewGameComponent},
   {path:'b64/:b64url', component: PlayNewGameComponent},
-  {path:'b64/:b64url/:qr', component: PlayNewGameComponent},
+  {path:'b64/:b64url/:action', component: PlayNewGameComponent},
   {path:'a/:asset', component: PlayNewGameComponent},
   {path:'a/:asset/:qr', component: PlayNewGameComponent},
   {path:'page/:page', component: MainLandingComponent},
+  {path:'action/:action', component: MainLandingComponent},
 ];
 
 @NgModule({
