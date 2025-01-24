@@ -246,6 +246,13 @@ export class SharedDataService {
     this.savePlay();
   }
 
+  detectUserAtLatLon(latitude: number, longitude: number) {
+    if (this.pv.moving(this.scenario, this.play, latitude, longitude)) {
+      this.updateGui();
+      this.savePlay();
+    };
+  }
+
   checkCondition(condition: GameCondition): boolean {
     return this.pv.checkCondition(condition, this.play, this.scenario);
   }

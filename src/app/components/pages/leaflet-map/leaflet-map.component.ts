@@ -255,7 +255,8 @@ export class LeafletMapComponent implements OnInit {
           if (callback) {
             callback(this.positionMarker);
           }
-        }        
+        }
+        this.shared.detectUserAtLatLon(aa.coords.latitude, aa.coords.longitude);
         this.changes.detectChanges();
       });
     }

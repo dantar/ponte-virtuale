@@ -64,6 +64,30 @@ export class PonteVirtualeService {
     this.runScenarioRules(scenario, play);
   }
 
+  moving(scenario: GameScenario, play: GamePlay, latitude: number, longitude: number): boolean {
+    class NearestFound {
+      id: string;
+    }
+    let nearest: MapLocation | undefined = undefined;
+    let threshold = 1;
+    scenario.locations.forEach(location => {
+      let distance = (location.lat - latitude) *  (location.lat - latitude) + (location.lon - longitude) * (location.lon - longitude);
+      if (distance < threshold) {
+        threshold = distance;
+        nearest = location;
+      }
+    });
+    if (nearest != play.nearest) {
+      play.nearest = nearest;
+      if (nearest) {
+        play.event = new GameEventNear().setLocation(nearest.id);
+        this.runScenarioRules(scenario, play);
+      }
+      return true;
+    }
+    return false;
+  }
+
   trigger(scenario: GameScenario, play: GamePlay, action: string) {
     play.event = new GameEventTriggerAction().setAction(action);
     this.runScenarioRules(scenario, play);
@@ -294,6 +318,24 @@ export class GameEventVisit extends GameEvent {
 
 }
 GameEvent.register(GameEventVisit);
+
+export class GameEventNear extends GameEvent {
+
+  near: string;
+
+  setLocation(location: string): GameEvent {
+    this.near = location;
+    return this;
+  }
+
+  static override validEvent(rule: GameRule, scenario: GameScenario, play: GamePlay): boolean {
+    let event = (play.event as GameEventNear);
+    let r = /near:(.*)/;
+    return !!(event.near && safeCapture(GamePlay.replaceValues(play, rule.trigger), r, 1) === event.near);
+  }
+
+}
+GameEvent.register(GameEventNear);
 
 export class GameEventTriggerAction extends GameEvent {
 
@@ -838,6 +880,7 @@ export class GamePlay {
   id: string;
   currentPage?: string;
   currentScanner?: string;
+  nearest?: string;
 
   story: GamePlayStory[];
   badges: string[];
