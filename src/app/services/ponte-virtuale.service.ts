@@ -9,6 +9,15 @@ import { IfTypeOf } from './if-type-of.service';
 })
 export class PonteVirtualeService {
 
+  private registryOfConditionEvaluators: ConditionEvaluator[] = [];
+
+  registerConditionEvaluator(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
+    const evaluator = new ConditionEvaluator(condition, callback);
+    this.registryOfConditionEvaluators.push(evaluator);
+    console.log("Rgistered ConditionEvaluator", evaluator);
+    return evaluator;
+  }
+
   start(scenario: GameScenario, play: GamePlay) {
     play.event = new GameEventStart();
     this.runScenarioRules(scenario, play);
@@ -19,6 +28,11 @@ export class PonteVirtualeService {
     // TODO: make a rules runner, with session variables and recording effects to apply at the end of the rules run
     play.clipboard = {}; // reset clipboard
     scenario.rules.forEach(rule => this.checkAndRunRule(rule, scenario, play));
+    this.registryOfConditionEvaluators.forEach(evaluator => {
+      if (this.checkCondition(evaluator.condition, play, scenario)) {
+        evaluator.callback(play, scenario);
+      }
+    });
   }
 
   checkAndRunRule(rule: GameRule, scenario: GameScenario, play: GamePlay): void {
@@ -205,6 +219,20 @@ export class PonteVirtualeService {
   loadGameScenario(url: string): Promise<GameScenario> {
     return lastValueFrom(this.http.get<GameScenario>(url));
   };
+
+}
+
+export class ConditionEvaluator {
+
+  uuid: string;
+  condition: GameCondition;
+  callback: (play :GamePlay, scenario: GameScenario) => void;
+
+  constructor(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void) {
+    this.condition = condition;
+    this.callback = callback;
+    this.uuid = crypto.randomUUID();
+  }
 
 }
 
@@ -701,17 +729,6 @@ export class GameEffectStoryItem {
 }
 GameEffect.register(GameEffectStory);
 
-export class GameEffectBadge extends GameEffect {
-  badge: string;
-  static override run(effect: GameEffectBadge, scenario: GameScenario, play: GamePlay) {
-    if (!play.badges.includes(effect.badge)) play.badges.push(effect.badge);
-  }
-  static override valid(effect: GameEffectBadge): boolean {
-    return effect.badge ? true : false;
-  }
-}
-GameEffect.register(GameEffectBadge);
-
 export class GameEffectTag extends GameEffect {
   tag: string | string[];
   static override run(effect: GameEffectTag, scenario: GameScenario, play: GamePlay) {
@@ -748,28 +765,13 @@ export class GameEffectUntag extends GameEffect {
 }
 GameEffect.register(GameEffectUntag);
 
-export class GameEffectChallenge extends GameEffect {
-  challenge: string;
-  static override run(effect: GameEffectChallenge, scenario: GameScenario, play: GamePlay) {
-    scenario.challenges
-    .filter(challenge => challenge.id === effect.challenge)
-    .forEach(challenge => {
-      GameChallenge.initPlay(challenge, scenario, play);
-    })
-  }
-  static override valid(effect: GameEffectChallenge) {
-    return effect.challenge ? true : false;
-  }
-}
-GameEffect.register(GameEffectChallenge);
-
 export class GameEffectGoToLocation extends GameEffect {
   zoomto: string;
   static override run(effect: GameEffectGoToLocation, scenario: GameScenario, play: GamePlay) {
-    play.zoomTo = effect.zoomto;
+    play.zoomTo = effect.zoomto? GamePlay.replaceValues(play, effect.zoomto): null;
   }
   static override valid(effect: GameEffectGoToLocation) {
-    return effect.zoomto ? true : false;
+    return Object.keys(effect).includes('zoomto');
   }
 }
 GameEffect.register(GameEffectGoToLocation);
@@ -777,10 +779,10 @@ GameEffect.register(GameEffectGoToLocation);
 export class GameEffectShowPage extends GameEffect {
   page: string;
   static override run(effect: GameEffectShowPage, scenario: GameScenario, play: GamePlay) {
-    play.currentPage = effect.page;
+    play.currentPage = effect.page ? GamePlay.replaceValues(play, effect.page): undefined;
   }
   static override valid(effect: GameEffectShowPage) {
-    return effect.page ? true : false;
+    return Object.keys(effect).includes('page');
   }
 }
 GameEffect.register(GameEffectShowPage);
@@ -1069,6 +1071,9 @@ export class MapLocation {
 }
 
 export class MapFeaturePolyline extends MapLocation{
+  static isPolyline(f: MapFeaturePolyline): boolean {
+    return f.polyline ? true: false;
+  }
   polyline: (string | number[])[];
   style?: GeoJSONOptions;
 }

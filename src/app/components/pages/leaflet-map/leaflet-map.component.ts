@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { GeoJSONOptions, Map, Marker, PointExpression } from 'leaflet';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { IfTypeOf } from 'src/app/services/if-type-of.service';
 import { LeafletSettingsService, Leaflet, MapFeature } from 'src/app/services/leaflet-settings.service';
 import { GameCondition, GameLayerIcon, GameLayerMap, MapFeaturePolyline, MapLocation } from 'src/app/services/ponte-virtuale.service';
@@ -12,7 +12,7 @@ import { Optional } from 'src/app/services/utils';
   templateUrl: './leaflet-map.component.html',
   styleUrls: ['./leaflet-map.component.scss']
 })
-export class LeafletMapComponent implements OnInit {
+export class LeafletMapComponent implements OnInit, OnDestroy {
 
   enabled: boolean;
   options: Leaflet.MapOptions;
@@ -20,12 +20,15 @@ export class LeafletMapComponent implements OnInit {
   positionMarker: Marker;
   map: Map;
   featuresById: {[id: string]: MapFeature};
+  polylinesById: {[id: string]: MapFeaturePolyline};
+
+  layers: Leaflet.Layer[];
 
   @Input() layer: GameLayerMap;
   @Output() clickMarker = new EventEmitter();
 
   allicons: {[id:string]: Leaflet.Icon};
-
+  subscriptions: Subscription[];
 
   constructor(
     public leaflet: LeafletSettingsService,
@@ -35,9 +38,16 @@ export class LeafletMapComponent implements OnInit {
   ) {
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe());
+  }
+
   ngOnInit(): void {
+    this.subscriptions = [];
     this.allicons = {};
     this.featuresById = {};
+    this.polylinesById = {};
+    this.getLayers();
     console.log('map is reset');
     this.subscribewatch();
     this.subscribezoom();
@@ -52,8 +62,12 @@ export class LeafletMapComponent implements OnInit {
   }
 
   subscribezoom() {
-    this.shared.zoomMapToObs.subscribe(location => this.zoomToFeature(location));
-    this.leaflet.takeMeToObs.subscribe(location => this.takeMeToFeature(location));
+    this.subscriptions.push(
+      this.shared.zoomMapToObs.subscribe(location => this.zoomToFeature(location))
+    );
+    this.subscriptions.push(
+      this.leaflet.takeMeToObs.subscribe(location => this.takeMeToFeature(location))
+    );
   }
 
   takeMeToFeature(location: string): void {
@@ -79,6 +93,16 @@ export class LeafletMapComponent implements OnInit {
     if (location in this.featuresById) {
       const feature = this.featuresById[location];
       this.fitBounds(feature.marker);
+    } else if (location in this.polylinesById) {
+      const p = this.polylinesById[location];
+      const markers: Marker<any>[] = [];
+      const bb = new BoundingBoxFinder();
+      const ito = IfTypeOf.build()
+      .ifString(id => markers.push(this.featuresById[id as string].marker))
+      .ifArray<number>(ll => bb.oneMoreLatLon(ll));
+      p.polyline.forEach(c => ito.of(c));
+      bb.addMarkers(markers);
+      this.fitBounds(...markers);
     } else {
       switch (location) {
         case 'gps':
@@ -175,12 +199,15 @@ export class LeafletMapComponent implements OnInit {
     };
   }
 
-  getLayers(): Leaflet.Layer[] {
-    // console.log('getLayers!');
+  private getLayers(): void {
+    console.log('getLayers!');
     let visibles: string[] = [];
+    this.layer.features
+    .filter(f => MapFeaturePolyline.isPolyline(f as MapFeaturePolyline))
+    .forEach(f => this.polylinesById[f.id] = f as MapFeaturePolyline);
     const markers: Leaflet.Layer[] = this.layer.features
     .filter(f => f.pos)
-    .filter(f => !f.condition || this.shared.checkCondition(f.condition))
+    .filter(f => !f.condition || this.shared.checkCondition(f.condition)) // FIXME: fix this: won't be called! use ConditionEvaluator
     .map(f => {
       visibles.push(f.id);
       return this._makeFeature(f).marker
@@ -204,11 +231,12 @@ export class LeafletMapComponent implements OnInit {
       const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions);
       markers.push(gjlayer);
     });
-    if (this.positionMarker) {
-      markers.push(this.positionMarker);
-    }
+    // if (this.positionMarker) {
+    //   markers.push(this.positionMarker);
+    // }
     //console.log("Markers!", markers);
-    return markers;
+    this.layers = markers;
+    //return markers;
   }
 
   private getPolylineCoordinates(f: MapFeaturePolyline, visibles: string[]): number[][] {
@@ -232,26 +260,28 @@ export class LeafletMapComponent implements OnInit {
     if (this.leaflet.watchedposition) {
       this.tracker = this.leaflet.watchedposition.subscribe((aa) => {
         console.log('moving...', aa);
-        const markeropts: Leaflet.MarkerOptions = {};
-        if (this._getIconIndex('gps') >= 0) {
-          const i = this._getGameLayerIconById('gps');
-          markeropts.icon = Leaflet.icon({
-            iconUrl: this.shared.getGameResourceUrl(i.url), 
-            iconSize: i.size as PointExpression || [30,30], 
-            iconAnchor: i.anchor as PointExpression || [15, 15]
-          });
-        } else {
-          markeropts.icon = Leaflet.icon({
-            iconUrl: './assets/gps.svg', 
-            iconSize: [30,30], 
-            iconAnchor: [15, 15]
-          });
-        }
         const latlng = new Leaflet.LatLng(aa.coords.latitude, aa.coords.longitude);
         if (this.positionMarker) {
           this.positionMarker.setLatLng(latlng);
         } else {
+          // create marker
+          const markeropts: Leaflet.MarkerOptions = {};
+          if (this._getIconIndex('gps') >= 0) {
+            const i = this._getGameLayerIconById('gps');
+            markeropts.icon = Leaflet.icon({
+              iconUrl: this.shared.getGameResourceUrl(i.url), 
+              iconSize: i.size as PointExpression || [30,30], 
+              iconAnchor: i.anchor as PointExpression || [15, 15]
+            });
+          } else {
+            markeropts.icon = Leaflet.icon({
+              iconUrl: './assets/gps.svg', 
+              iconSize: [30,30], 
+              iconAnchor: [15, 15]
+            });
+          }
           this.positionMarker = Leaflet.marker(latlng, markeropts);
+          this.layers.push(this.positionMarker);          
           if (callback) {
             callback(this.positionMarker);
           }
@@ -259,6 +289,7 @@ export class LeafletMapComponent implements OnInit {
         this.shared.detectUserAtLatLon(aa.coords.latitude, aa.coords.longitude);
         this.changes.detectChanges();
       });
+      this.subscriptions.push(this.tracker);
     }
   }
 
@@ -271,7 +302,8 @@ export class LeafletMapComponent implements OnInit {
     console.log('onMapReady', this.map);
     this.map = map;
     this.map.fitBounds(
-      this.getLayers()
+      //this.getLayers()
+      this.layers
       .filter(l => l instanceof Marker)
       .map(m => (m as Marker).getLatLng())
       .map(ll => [ll.lat,ll.lng]));
@@ -297,3 +329,30 @@ export class LeafletMapComponent implements OnInit {
 
 }
 
+class BoundingBoxFinder {
+
+  ul?: Leaflet.LatLngTuple;
+  lr?: Leaflet.LatLngTuple;
+
+  constructor() {
+  }
+
+  oneMoreLatLon(ll: number[]): void {
+    this.ul = this.ul ? [
+      this.ul[0] < ll[0] ? ll[0]: this.ul[0],
+      this.ul[1] < ll[1] ? ll[1]: this.ul[1],
+    ]: [ll[0], ll[1]];
+    this.lr = this.lr ? [
+      this.lr[0] > ll[0] ? ll[0]: this.lr[0],
+      this.lr[1] > ll[1] ? ll[1]: this.lr[1],
+    ]: [ll[0], ll[1]];
+  }
+
+  addMarkers(markers: Marker<any>[]) {
+    if (this.ul && this.lr) {
+      markers.push(Leaflet.marker(this.ul));
+      markers.push(Leaflet.marker(this.lr));
+    }
+  }
+
+}

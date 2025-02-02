@@ -30,6 +30,9 @@ export class MainLandingComponent implements OnInit {
       if (p['page']) {
         this.pagename = p['page'];
       }
+      if (p['action']) {
+        this.shared.triggerAction(p['action']);
+      }
     });
   }
 
