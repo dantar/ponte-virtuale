@@ -1,7 +1,7 @@
 <div class="leaflet-map fulldiv"
      leaflet
      [leafletOptions]="options"
-     [leafletLayers]="getLayers()"
+     [leafletLayers]="layers"
      (leafletMapReady)="onMapReady($event)">
 </div>
 <div *ngIf="!leaflet.available">

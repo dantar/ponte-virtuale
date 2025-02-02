@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Option, GamePlay, GamePlayStory, GameScenario, PonteVirtualeService, GameCondition, GameEffect, GameOption, GamePage, GameEvent, GameQrScanner} from './ponte-virtuale.service';
+import { Option, GamePlay, GamePlayStory, GameScenario, PonteVirtualeService, GameCondition, GameEffect, GameOption, GamePage, GameEvent, GameQrScanner, ConditionEvaluator} from './ponte-virtuale.service';
 import { Subject, lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -10,6 +10,10 @@ import { WebShareService } from './web-share.service';
   providedIn: 'root'
 })
 export class SharedDataService {
+
+  registerConditionEvaluator(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
+    return this.pv.registerConditionEvaluator(condition, callback);
+  }
 
   getReplaceValues(html: string): string {
     return this.play ? GamePlay.replaceValues(this.play, html) : html;

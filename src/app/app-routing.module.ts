@@ -16,6 +16,7 @@ const routes: Routes = [
   {path:'a/:asset', component: PlayNewGameComponent},
   {path:'a/:asset/:qr', component: PlayNewGameComponent},
   {path:'page/:page', component: MainLandingComponent},
+  {path:'action/:action', component: MainLandingComponent},
 ];
 
 @NgModule({

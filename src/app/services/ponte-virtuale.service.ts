@@ -9,6 +9,15 @@ import { IfTypeOf } from './if-type-of.service';
 })
 export class PonteVirtualeService {
 
+  private registryOfConditionEvaluators: ConditionEvaluator[] = [];
+
+  registerConditionEvaluator(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
+    const evaluator = new ConditionEvaluator(condition, callback);
+    this.registryOfConditionEvaluators.push(evaluator);
+    console.log("Rgistered ConditionEvaluator", evaluator);
+    return evaluator;
+  }
+
   start(scenario: GameScenario, play: GamePlay) {
     play.event = new GameEventStart();
     this.runScenarioRules(scenario, play);
@@ -19,6 +28,11 @@ export class PonteVirtualeService {
     // TODO: make a rules runner, with session variables and recording effects to apply at the end of the rules run
     play.clipboard = {}; // reset clipboard
     scenario.rules.forEach(rule => this.checkAndRunRule(rule, scenario, play));
+    this.registryOfConditionEvaluators.forEach(evaluator => {
+      if (this.checkCondition(evaluator.condition, play, scenario)) {
+        evaluator.callback(play, scenario);
+      }
+    });
   }
 
   checkAndRunRule(rule: GameRule, scenario: GameScenario, play: GamePlay): void {
@@ -181,6 +195,20 @@ export class PonteVirtualeService {
   loadGameScenario(url: string): Promise<GameScenario> {
     return lastValueFrom(this.http.get<GameScenario>(url));
   };
+
+}
+
+export class ConditionEvaluator {
+
+  uuid: string;
+  condition: GameCondition;
+  callback: (play :GamePlay, scenario: GameScenario) => void;
+
+  constructor(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void) {
+    this.condition = condition;
+    this.callback = callback;
+    this.uuid = crypto.randomUUID();
+  }
 
 }
 
@@ -1000,6 +1028,9 @@ export class MapLocation {
 }
 
 export class MapFeaturePolyline extends MapLocation{
+  static isPolyline(f: MapFeaturePolyline): boolean {
+    return f.polyline ? true: false;
+  }
   polyline: (string | number[])[];
   style?: GeoJSONOptions;
 }

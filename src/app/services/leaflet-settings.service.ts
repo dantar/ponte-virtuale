@@ -33,6 +33,15 @@ export class LeafletSettingsService {
     this.setAllowed(JSON.parse(localStorage.getItem('leaflet-allowed') || 'false'));
   }
 
+  latestObservedPosition: GeolocationPosition;
+
+  subscribeToWatchedPosition(fn: (p:GeolocationPosition) => void) {
+    this.watchedposition.subscribe(fn);
+    if (this.latestObservedPosition) {
+      fn(this.latestObservedPosition);
+    }
+  }
+
   setAllowed(allowed: boolean) {
     this.allowed = allowed;
     localStorage.setItem('leaflet-allowed', String(this.allowed));
@@ -49,13 +58,14 @@ export class LeafletSettingsService {
     if (this.allowed) {
       this.watchedposition = new Observable(observer => {
         const onSuccess:PositionCallback = (pos: GeolocationPosition) => {
-            observer.next(pos);
+          this.latestObservedPosition = pos;
+          observer.next(pos);
         };
         const onError:PositionErrorCallback = (error) => {
-            if (error && error.code === error.PERMISSION_DENIED) {
-              service.allowed = false;
-            }
-            observer.error(error);
+          if (error && error.code === error.PERMISSION_DENIED) {
+            service.allowed = false;
+          }
+          observer.error(error);
         };
         //const options:PositionOptions = this.locationOptions();
         const watcher:number = navigator.geolocation.watchPosition(onSuccess, onError);
