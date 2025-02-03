@@ -353,6 +353,10 @@ export class SharedDataService {
     if (this.play.settings) {
       Object.keys(this.play.settings).forEach(key => result[`setting-${key}-${this.play.settings[key]}`] = true);
     }
+    result[`nearest-${this.play.nearest ? true : false}`] = true;
+    if (this.play.nearest) {
+      result[`nearest-to-${this.play.nearest}`] = true;
+    }
     return result;
   }
 

@@ -58,14 +58,16 @@ export class LeafletSettingsService {
     if (this.allowed) {
       this.watchedposition = new Observable(observer => {
         const onSuccess:PositionCallback = (pos: GeolocationPosition) => {
+          console.log("PositionCallback", pos);
           this.latestObservedPosition = pos;
           observer.next(pos);
         };
         const onError:PositionErrorCallback = (error) => {
+          console.log("PositionErrorCallback", error);
           if (error && error.code === error.PERMISSION_DENIED) {
             service.allowed = false;
+            observer.error(error);
           }
-          observer.error(error);
         };
         //const options:PositionOptions = this.locationOptions();
         const watcher:number = navigator.geolocation.watchPosition(onSuccess, onError);

@@ -82,19 +82,25 @@ export class PonteVirtualeService {
     class NearestFound {
       id: string;
     }
-    let nearest: MapLocation | undefined = undefined;
+    let nearest: string | undefined;
     let threshold = 1;
-    scenario.locations.forEach(location => {
-      let distance = (location.lat - latitude) *  (location.lat - latitude) + (location.lon - longitude) * (location.lon - longitude);
+    scenario.map.features
+    .filter(l => l.pos ? true: false)
+    .forEach(location => {
+      const pos = location.pos as number[];
+      const lat = pos[0];
+      const lon = pos[1];
+      const distance = ((lat - latitude) *  (lat - latitude) + (lon - longitude) * (lon - longitude)) * 1000 * 1000 * 10;
       if (distance < threshold) {
         threshold = distance;
-        nearest = location;
+        nearest = location.id;
       }
     });
+    console.log('Closest distance', threshold);
     if (nearest != play.nearest) {
       play.nearest = nearest;
       if (nearest) {
-        play.event = new GameEventNear().setLocation(nearest.id);
+        play.event = new GameEventNear().setLocation(nearest);
         this.runScenarioRules(scenario, play);
       }
       return true;
@@ -239,16 +245,17 @@ export class ConditionEvaluator {
 export class GameScenario {
 
   id: string;
-  map: GameLayerMap;
-  desktop?: string;
   //layers: GameLayer[];
+  rules: GameRule[];
   pages?: GamePage[];
   scanners?: GameQrScanner[];
   stories: GameEffectStoryItem[];
-  badges?: GameBadge[];
   stylesheet?: string | string[];
+  map: GameLayerMap;
 
-  rules: GameRule[];
+  // the following is all deprecated
+  desktop?: string;
+  badges?: GameBadge[];
   options: GameOption[];
   locations: MapLocation[];
   svgmaps: SvgMap[];
@@ -847,10 +854,11 @@ export class GamePlay {
 
   static replaceValues(play: GamePlay, html: string): string {
     let t = html;
-    // console.log('replaceValues-start', new Date());
+    if (play && (play.nearest != undefined)) {
+      t = t.replaceAll(`{{nearest}}`, play.nearest).replaceAll(`__nearest__`, play.nearest);
+    }
     if (play && (play.score != undefined)) {
       t = t.replaceAll(`{{score}}`, ''+play.score).replaceAll(`__score__`, ''+play.score);
-      // console.log('replaceValues-score', new Date());
     }
     if (play && play.clipboard) {
       let s = play.clipboard as any;
@@ -858,7 +866,6 @@ export class GamePlay {
         .replaceAll(`{{${k}}}`, s[k])
         .replaceAll(`__${k}__`, s[k])
       );
-      // console.log('replaceValues-clipboard', new Date());
     }
     if (play && play.settings) {
       let s = play.settings as any;
@@ -866,7 +873,6 @@ export class GamePlay {
         .replaceAll(`{{${k}}}`, s[k])
         .replaceAll(`__${k}__`, s[k])
       );
-      // console.log('replaceValues-settings', new Date());
     }
     if (play && play.variables) {
       let s = play.variables as any;
@@ -874,7 +880,6 @@ export class GamePlay {
         .replaceAll(`{{${k}}}`, s[k])
         .replaceAll(`__${k}__`, s[k])
       );
-      // console.log('replaceValues-variables', new Date());
     }
     return t;
   }
