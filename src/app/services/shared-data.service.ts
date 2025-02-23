@@ -11,7 +11,7 @@ import { WebShareService } from './web-share.service';
 })
 export class SharedDataService {
 
-  registerConditionEvaluator(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
+  registerConditionEvaluator(condition: GameCondition, callback: (result: boolean, play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
     return this.pv.registerConditionEvaluator(condition, callback);
   }
 

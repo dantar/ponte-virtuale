@@ -11,7 +11,7 @@ export class PonteVirtualeService {
 
   private registryOfConditionEvaluators: ConditionEvaluator[] = [];
 
-  registerConditionEvaluator(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
+  registerConditionEvaluator(condition: GameCondition, callback: (result: boolean, play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
     const evaluator = new ConditionEvaluator(condition, callback);
     this.registryOfConditionEvaluators.push(evaluator);
     console.log("Rgistered ConditionEvaluator", evaluator);
@@ -29,9 +29,7 @@ export class PonteVirtualeService {
     play.clipboard = {}; // reset clipboard
     scenario.rules.forEach(rule => this.checkAndRunRule(rule, scenario, play));
     this.registryOfConditionEvaluators.forEach(evaluator => {
-      if (this.checkCondition(evaluator.condition, play, scenario)) {
-        evaluator.callback(play, scenario);
-      }
+      evaluator.callback(this.checkCondition(evaluator.condition, play, scenario), play, scenario);
     });
   }
 
@@ -232,9 +230,9 @@ export class ConditionEvaluator {
 
   uuid: string;
   condition: GameCondition;
-  callback: (play :GamePlay, scenario: GameScenario) => void;
+  callback: (result: boolean, play :GamePlay, scenario: GameScenario) => void;
 
-  constructor(condition: GameCondition, callback: (play :GamePlay, scenario: GameScenario) => void) {
+  constructor(condition: GameCondition, callback: (result: boolean, play :GamePlay, scenario: GameScenario) => void) {
     this.condition = condition;
     this.callback = callback;
     this.uuid = crypto.randomUUID();

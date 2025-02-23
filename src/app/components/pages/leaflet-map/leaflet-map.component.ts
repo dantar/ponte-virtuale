@@ -217,13 +217,24 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     .forEach(f => this.polylinesById[f.id] = f as MapFeaturePolyline);
     const markers: Leaflet.Layer[] = this.layer.features
     .filter(f => f.pos)
-    .filter(f => !f.condition || this.shared.checkCondition(f.condition)) // FIXME: fix this: won't be called! use ConditionEvaluator
+    //.filter(f => !f.condition || this.shared.checkCondition(f.condition)) // FIXME: fix this: won't be called! use ConditionEvaluator
     .map(f => {
       visibles.push(f.id);
       return this._makeFeature(f).marker
     })
     ;
     this.layer.features.forEach(f => this.feedFeatureBoundsById(f));
+    this.layer.features
+    .filter(f => f.condition)
+    .forEach(f => this.shared.registerConditionEvaluator(
+      f.condition as GameCondition, (result, play, scenario) => {
+        if (result) {
+          this.layers.splice(this.layers.indexOf(this.featuresById[f.id].marker), 1);
+        } else {
+          this.layers.push(this.featuresById[f.id].marker);
+        }
+      }
+    ));
     this.layer.features
     .map(f => f as MapFeaturePolyline)
     .filter(f => f.polyline)
