@@ -33,6 +33,7 @@ export class PlayNewGameComponent implements OnInit {
         try {
           gameUrl = atob(p['b64url']);
         } catch (error) {
+          console.log("p['b64url']", p['b64url'], error);
           throw new Error('indicare il b64url del gioco');
         }
       }
@@ -46,6 +47,7 @@ export class PlayNewGameComponent implements OnInit {
   }
   takeactions(p: Params) {
     if (p['action']) {
+      console.log("taking action", p['action']);
       const qr = p['action'];
       this.shared.triggerAction(qr);
     }

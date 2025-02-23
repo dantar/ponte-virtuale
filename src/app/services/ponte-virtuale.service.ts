@@ -775,7 +775,9 @@ GameEffect.register(GameEffectUntag);
 export class GameEffectGoToLocation extends GameEffect {
   zoomto: string;
   static override run(effect: GameEffectGoToLocation, scenario: GameScenario, play: GamePlay) {
+    console.log('Running GameEffectGoToLocation', play.zoomTo);
     play.zoomTo = effect.zoomto? GamePlay.replaceValues(play, effect.zoomto): null;
+    console.log('Done running GameEffectGoToLocation', play.zoomTo);
   }
   static override valid(effect: GameEffectGoToLocation) {
     return Object.keys(effect).includes('zoomto');
@@ -786,6 +788,7 @@ GameEffect.register(GameEffectGoToLocation);
 export class GameEffectShowPage extends GameEffect {
   page: string;
   static override run(effect: GameEffectShowPage, scenario: GameScenario, play: GamePlay) {
+    console.log("setting page to", play.currentPage, effect.page);
     play.currentPage = effect.page ? GamePlay.replaceValues(play, effect.page): undefined;
   }
   static override valid(effect: GameEffectShowPage) {
@@ -1066,6 +1069,7 @@ export class MapLocation {
   icon?: string | GameLayerIcon | [{condition: GameCondition, icon: string | GameLayerIcon}];
   pos?: number[];
   condition?: GameCondition;
+  className?: string;
 
   lat: number; // obsolete?
   lon: number; // obsolete?

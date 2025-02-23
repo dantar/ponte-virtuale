@@ -213,6 +213,8 @@ export class SharedDataService {
       this.play.route = null;
     } else if (this.play.currentPage) {
       this.router.navigate(['page', this.play.currentPage]);
+    } else {
+      this.router.navigate(['']);
     }
   }
 
@@ -222,6 +224,7 @@ export class SharedDataService {
   }
 
   findZoomTo() {
+    console.log('findZoomTo', this.play.zoomTo);
     if (this.play.zoomTo) {
       this.zoomMapToSource.next(this.play.zoomTo);
       this.play.zoomTo = null;

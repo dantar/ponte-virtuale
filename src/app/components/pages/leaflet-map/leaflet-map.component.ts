@@ -21,6 +21,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
   map: Map;
   featuresById: {[id: string]: MapFeature};
   polylinesById: {[id: string]: MapFeaturePolyline};
+  featureBoundsById: {[id: string]: Marker<any>[]};
 
   layers: Leaflet.Layer[];
 
@@ -47,6 +48,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     this.allicons = {};
     this.featuresById = {};
     this.polylinesById = {};
+    this.featureBoundsById = {};
     this.getLayers();
     console.log('map is reset');
     this.subscribewatch();
@@ -62,12 +64,14 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
   }
 
   subscribezoom() {
+    console.log('subscribezoom');
     this.subscriptions.push(
       this.shared.zoomMapToObs.subscribe(location => this.zoomToFeature(location))
     );
     this.subscriptions.push(
       this.leaflet.takeMeToObs.subscribe(location => this.takeMeToFeature(location))
     );
+    this.shared.findZoomTo();
   }
 
   takeMeToFeature(location: string): void {
@@ -90,19 +94,23 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
   }
 
   zoomToFeature(location: string): void {
-    if (location in this.featuresById) {
-      const feature = this.featuresById[location];
-      this.fitBounds(feature.marker);
-    } else if (location in this.polylinesById) {
-      const p = this.polylinesById[location];
-      const markers: Marker<any>[] = [];
-      const bb = new BoundingBoxFinder();
-      const ito = IfTypeOf.build()
-      .ifString(id => markers.push(this.featuresById[id as string].marker))
-      .ifArray<number>(ll => bb.oneMoreLatLon(ll));
-      p.polyline.forEach(c => ito.of(c));
-      bb.addMarkers(markers);
-      this.fitBounds(...markers);
+    console.log('zoomToFeature', location);
+    if (location in this.featureBoundsById) {
+      this.fitBounds(...this.featureBoundsById[location]);
+    // }
+    // if (location in this.featuresById) {
+    //   const feature = this.featuresById[location];
+    //   this.fitBounds(feature.marker);
+    // } else if (location in this.polylinesById) {
+    //   const p = this.polylinesById[location];
+    //   const markers: Marker<any>[] = [];
+    //   const bb = new BoundingBoxFinder();
+    //   const ito = IfTypeOf.build()
+    //   .ifString(id => markers.push(this.featuresById[id as string].marker))
+    //   .ifArray<number>(ll => bb.oneMoreLatLon(ll));
+    //   p.polyline.forEach(c => ito.of(c));
+    //   bb.addMarkers(markers);
+    //   this.fitBounds(...markers);
     } else {
       switch (location) {
         case 'gps':
@@ -125,12 +133,14 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
           }
           break;
         default:
+          console.log('zoomToFeature failed for', location, this.featuresById, this.polylinesById);
           break;
       }
     }
   }
 
   fitBounds(...markers: Marker[]) {
+    console.log('fitbounds');
     this.map.fitBounds(Leaflet.latLngBounds(markers.map(m => m.getLatLng())));
   }
 
@@ -213,6 +223,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
       return this._makeFeature(f).marker
     })
     ;
+    this.layer.features.forEach(f => this.feedFeatureBoundsById(f));
     this.layer.features
     .map(f => f as MapFeaturePolyline)
     .filter(f => f.polyline)
@@ -237,6 +248,22 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     //console.log("Markers!", markers);
     this.layers = markers;
     //return markers;
+  }
+
+  feedFeatureBoundsById(f: MapLocation): void {
+    const p = f as MapFeaturePolyline;
+    if (p.polyline && p.id) {
+      const bb = new BoundingBoxFinder();
+      const ito = IfTypeOf.build()
+      .ifString(id => markers.push(this.featuresById[id as string].marker))
+      .ifArray<number>(ll => bb.oneMoreLatLon(ll));
+      p.polyline.forEach(c => ito.of(c));
+      const markers: Marker<any>[] = [];
+      bb.addMarkers(markers);
+      this.featureBoundsById[p.id] = markers;
+    } else if(f.pos && f.id) {
+      this.featureBoundsById[f.id] = [Leaflet.marker([f.pos[0], f.pos[1]])];
+    }
   }
 
   private getPolylineCoordinates(f: MapFeaturePolyline, visibles: string[]): number[][] {
