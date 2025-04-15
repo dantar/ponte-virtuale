@@ -30,6 +30,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
 
   allicons: {[id:string]: Leaflet.Icon};
   subscriptions: Subscription[];
+  polylineGeoJsonById: {[id: string]: Leaflet.GeoJSON};
 
   constructor(
     public leaflet: LeafletSettingsService,
@@ -48,6 +49,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     this.allicons = {};
     this.featuresById = {};
     this.polylinesById = {};
+    this.polylineGeoJsonById = {};
     this.featureBoundsById = {};
     this.getLayers();
     console.log('map is reset');
@@ -212,12 +214,8 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
   private getLayers(): void {
     console.log('getLayers!');
     let visibles: string[] = [];
-    this.layer.features
-    .filter(f => MapFeaturePolyline.isPolyline(f as MapFeaturePolyline))
-    .forEach(f => this.polylinesById[f.id] = f as MapFeaturePolyline);
     const markers: Leaflet.Layer[] = this.layer.features
     .filter(f => f.pos)
-    //.filter(f => !f.condition || this.shared.checkCondition(f.condition)) // FIXME: fix this: won't be called! use ConditionEvaluator
     .map(f => {
       visibles.push(f.id);
       return this._makeFeature(f).marker
@@ -225,6 +223,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     ;
     this.layer.features.forEach(f => this.feedFeatureBoundsById(f));
     this.layer.features
+    .filter(f => !MapFeaturePolyline.isPolyline(f as MapFeaturePolyline))
     .filter(f => f.condition)
     .forEach(f => this.shared.registerConditionEvaluator(
       f.condition as GameCondition, (result, play, scenario) => {
@@ -237,6 +236,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
         }
       }
     ));
+
     this.layer.features
     .map(f => f as MapFeaturePolyline)
     .filter(f => f.polyline)
@@ -253,14 +253,26 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
       //console.log('polyline', mylines);
       //const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions).addTo(map);
       const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions);
-      markers.push(gjlayer);
+      this.polylineGeoJsonById[f.id] = gjlayer;
+      this.polylinesById[f.id] = f as MapFeaturePolyline;
+      if (f.condition) {
+        this.shared.registerConditionEvaluator(
+          f.condition as GameCondition, (result, play, scenario) => {
+            let idx = this.layers.indexOf(this.polylineGeoJsonById[f.id]);
+            if (!result && idx >= 0) {
+              this.layers.splice(idx, 1);
+            }
+            if (result && idx < 0) {
+              this.layers.push(this.polylineGeoJsonById[f.id]);
+            }
+          }
+        );
+      }
+      //markers.push(gjlayer);
     });
-    // if (this.positionMarker) {
-    //   markers.push(this.positionMarker);
-    // }
+
     //console.log("Markers!", markers);
     this.layers = markers;
-    //return markers;
     // CONDITION intial evaluation
     this.shared.evaluateAllConditions();
   }
