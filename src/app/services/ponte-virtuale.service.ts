@@ -28,6 +28,13 @@ export class PonteVirtualeService {
     // TODO: make a rules runner, with session variables and recording effects to apply at the end of the rules run
     play.clipboard = {}; // reset clipboard
     scenario.rules.forEach(rule => this.checkAndRunRule(rule, scenario, play));
+    this.evaluateAllConditions(scenario, play);
+    this.registryOfConditionEvaluators.forEach(evaluator => {
+      evaluator.callback(this.checkCondition(evaluator.condition, play, scenario), play, scenario);
+    });
+  }
+
+  evaluateAllConditions(scenario: GameScenario, play: GamePlay) {
     this.registryOfConditionEvaluators.forEach(evaluator => {
       evaluator.callback(this.checkCondition(evaluator.condition, play, scenario), play, scenario);
     });

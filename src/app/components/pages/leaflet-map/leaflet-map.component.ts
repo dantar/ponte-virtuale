@@ -228,9 +228,11 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     .filter(f => f.condition)
     .forEach(f => this.shared.registerConditionEvaluator(
       f.condition as GameCondition, (result, play, scenario) => {
-        if (result) {
-          this.layers.splice(this.layers.indexOf(this.featuresById[f.id].marker), 1);
-        } else {
+        let idx = this.layers.indexOf(this.featuresById[f.id].marker);
+        if (!result && idx >= 0) {
+          this.layers.splice(idx, 1);
+        }
+        if (result && idx < 0) {
           this.layers.push(this.featuresById[f.id].marker);
         }
       }
@@ -259,6 +261,8 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     //console.log("Markers!", markers);
     this.layers = markers;
     //return markers;
+    // CONDITION intial evaluation
+    this.shared.evaluateAllConditions();
   }
 
   feedFeatureBoundsById(f: MapLocation): void {

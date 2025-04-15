@@ -15,6 +15,10 @@ export class SharedDataService {
     return this.pv.registerConditionEvaluator(condition, callback);
   }
 
+  evaluateAllConditions() {
+    this.pv.evaluateAllConditions(this.scenario, this.play);
+  }
+
   getReplaceValues(html: string): string {
     return this.play ? GamePlay.replaceValues(this.play, html) : html;
   }
