@@ -79,7 +79,21 @@ export class AppComponent implements OnInit, OnDestroy {
     this.cssHtml.push(cssUrl);
   }
 
+  private changeFavicon(url: string): void {
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = url;
+  }
+
   private startOrResumePlay() {
+
+    this.changeFavicon(this.shared.getGameResourceUrl(this.shared.scenario.favicon));
+    document.title = this.shared.scenario.name ? this.shared.scenario.name : this.shared.scenario.id;
+
     if (! this.shared.play) {
       this.shared.startGame();
     }

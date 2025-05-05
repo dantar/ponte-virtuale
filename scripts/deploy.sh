@@ -25,6 +25,11 @@ do
                     DEST=atlante.elabor.biz:dist/
                     INCLUDEZIP=true
                 ;;
+                mars) 
+                    TARGET=${OPTARG}
+                    DEST=mars.elabor.biz:dist/
+                    INCLUDEZIP=false
+                ;;
                 dantar) 
                     TARGET=${OPTARG}
                     DEST=dantar:html/

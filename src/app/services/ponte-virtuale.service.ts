@@ -83,20 +83,31 @@ export class PonteVirtualeService {
     this.runScenarioRules(scenario, play);
   }
 
+  private distanzaPitagorica(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 111320; // metri per grado di latitudine
+    const latMedia = ((lat1 + lat2) / 2) * (Math.PI / 180); // in radianti
+  
+    const deltaLat = (lat2 - lat1) * R;
+    const deltaLon = (lon2 - lon1) * R * Math.cos(latMedia);
+  
+    return Math.sqrt(deltaLat ** 2 + deltaLon ** 2); // in metri
+  }
+  
   moving(scenario: GameScenario, play: GamePlay, latitude: number, longitude: number): boolean {
     class NearestFound {
       id: string;
     }
     let nearest: string | undefined;
-    let threshold = 1;
+    let threshold = scenario.map.nearThreshold ? scenario.map.nearThreshold : 25; // default 25 metri
     scenario.map.features
     .filter(l => l.pos ? true: false)
     .forEach(location => {
       const pos = location.pos as number[];
       const lat = pos[0];
       const lon = pos[1];
-      const distance = ((lat - latitude) *  (lat - latitude) + (lon - longitude) * (lon - longitude)) * 1000 * 1000 * 10;
-      if (distance < threshold) {
+      const distance = this.distanzaPitagorica(lat, lon, latitude, longitude);
+      //const distance = ((lat - latitude) *  (lat - latitude) + (lon - longitude) * (lon - longitude)) * 1000 * 1000 * 10;
+      if ((distance < threshold) && (distance < (location.nearThreshold ? location.nearThreshold : threshold))) {
         threshold = distance;
         nearest = location.id;
       }
@@ -271,6 +282,7 @@ export class GameScenario {
   layout: string;
   fullscreen: string;
   favicon: string;
+  name?: string;
 
   static getStory(scenario: GameScenario, id: string): GameEffectStoryItem {
     const index = scenario.stories.map(s => s.id).indexOf(id);
@@ -935,6 +947,7 @@ export class GameLayerMap extends GameLayer {
   icons: GameLayerIcon[];
   features: MapLocation[];
   menu?: string;
+  nearThreshold?: number;
 }
 export class GameLayerIcon {
   id: string;
@@ -1073,6 +1086,7 @@ export class MapLocation {
   name: string;
   icon?: string | GameLayerIcon | [{condition: GameCondition, icon: string | GameLayerIcon}];
   pos?: number[];
+  nearThreshold?: number;
   condition?: GameCondition;
   className?: string;
 
