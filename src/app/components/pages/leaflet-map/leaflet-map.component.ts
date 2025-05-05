@@ -280,12 +280,12 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
   feedFeatureBoundsById(f: MapLocation): void {
     const p = f as MapFeaturePolyline;
     if (p.polyline && p.id) {
+      const markers: Marker<any>[] = [];
       const bb = new BoundingBoxFinder();
       const ito = IfTypeOf.build()
       .ifString(id => markers.push(this.featuresById[id as string].marker))
       .ifArray<number>(ll => bb.oneMoreLatLon(ll));
       p.polyline.forEach(c => ito.of(c));
-      const markers: Marker<any>[] = [];
       bb.addMarkers(markers);
       this.featureBoundsById[p.id] = markers;
     } else if(f.pos && f.id) {
