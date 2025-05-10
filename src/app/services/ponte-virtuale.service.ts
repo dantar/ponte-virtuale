@@ -14,7 +14,6 @@ export class PonteVirtualeService {
   registerConditionEvaluator(condition: GameCondition, callback: (result: boolean, play :GamePlay, scenario: GameScenario) => void): ConditionEvaluator {
     const evaluator = new ConditionEvaluator(condition, callback);
     this.registryOfConditionEvaluators.push(evaluator);
-    console.log("Rgistered ConditionEvaluator", evaluator);
     return evaluator;
   }
 
@@ -170,38 +169,54 @@ export class PonteVirtualeService {
   checkCondition(condition: GameCondition, play:GamePlay, scenario:GameScenario): boolean {
     let check: boolean = true;
     if(GameRule.validCondition(condition)) {
+      let found: boolean = false;
       // DEBT refactor this so that each class takes care of its own code
       if (GameConditionFormValue.valid(condition as GameConditionFormValue)) {
+        found = true;
         check = check && GameConditionFormValue.check(condition as GameConditionFormValue, play);
       }
       if (GameConditionSettingsValue.valid(condition as GameConditionSettingsValue)) {
+        found = true;
         check = check && GameConditionSettingsValue.check(condition as GameConditionSettingsValue, play);
       }
       if (GameConditionBadge.valid(condition as GameConditionBadge)) {
+        found = true;
         check = check && GameConditionBadge.check(condition as GameConditionBadge, play);
       }
       if (GameConditionBadges.valid(condition as GameConditionBadges)) {
+        found = true;
         check = check && GameConditionBadges.check(condition as GameConditionBadges, play);
       }
       if (GameConditionNoBadge.valid(condition as GameConditionNoBadge)) {
+        found = true;
         check = check && GameConditionNoBadge.check(condition as GameConditionNoBadge, play);
       }
       if (GameConditionTag.valid(condition as GameConditionTag)) {
+        found = true;
         check = check && GameConditionTag.check(condition as GameConditionTag, play);
       }
       if (GameConditionNoTag.valid(condition as GameConditionNoTag)) {
+        found = true;
         check = check && GameConditionNoTag.check(condition as GameConditionNoTag, play);
       }
       // logical operators require scenario and service for recursive checkCondition
       if (GameConditionNot.valid(condition as GameConditionNot)) {
+        found = true;
         check = check && GameConditionNot.check(condition as GameConditionNot, play, scenario, this);
       }
       if (GameConditionAnd.valid(condition as GameConditionAnd)) {
+        found = true;
         check = check && GameConditionAnd.check(condition as GameConditionAnd, play, scenario, this);
       }
       if (GameConditionOr.valid(condition as GameConditionOr)) {
+        found = true;
         check = check && GameConditionOr.check(condition as GameConditionOr, play, scenario, this);
       }
+      if (!found) {
+        console.warn(`SERVICE checking for a condition that does not match any available condition format (returns true)`, condition);
+      }
+    } else {
+      console.warn(`SERVICE checking invalid condition`, condition);
     }
     return check;
   }
@@ -665,7 +680,6 @@ export class GameConditionOr extends GameCondition {
     let result = false;
     for (let index = 0; index < condition.or.length; index++) {
       result = result || service.checkCondition(condition.or[index], play, scenario);
-      
     }
     return result;
   }

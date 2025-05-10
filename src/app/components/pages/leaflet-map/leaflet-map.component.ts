@@ -152,7 +152,6 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     .ifString( (s) => found.push(this._getGameLayerIconById(s)) )
     .ifObject( (o) => found.push(o as GameLayerIcon) );
     handleIcon.of(loc.icon);
-    //if (loc.icons || loc.id==='freedom-park-locomotive') 
     new IfTypeOf()
     .ifArray<{condition: GameCondition, icon: string | GameLayerIcon}>( (a) => {
       for (let index = 0; index < a.length; index++) {
@@ -214,6 +213,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
   private getLayers(): void {
     console.log('getLayers!');
     let visibles: string[] = [];
+    // crea tutte le feature tappa
     const markers: Leaflet.Layer[] = this.layer.features
     .filter(f => f.pos)
     .map(f => {
@@ -221,7 +221,9 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
       return this._makeFeature(f).marker
     })
     ;
+    // registra il bounding box di tutte le feature
     this.layer.features.forEach(f => this.feedFeatureBoundsById(f));
+    // registra le condition per le feature tappa con condition
     this.layer.features
     .filter(f => !MapFeaturePolyline.isPolyline(f as MapFeaturePolyline))
     .filter(f => f.condition)
@@ -241,6 +243,7 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
     .map(f => f as MapFeaturePolyline)
     .filter(f => f.polyline)
     .forEach(f => {
+      // su ogni polyline ...
       const mylines = {
         "type": "LineString", 
         "coordinates": this.getPolylineCoordinates(f, visibles)
@@ -252,28 +255,28 @@ export class LeafletMapComponent implements OnInit, OnDestroy {
       };
       //console.log('polyline', mylines);
       //const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions).addTo(map);
+      // ... definisce il suo layer
       const gjlayer = Leaflet.geoJSON([mylines], myStyle as GeoJSONOptions);
       this.polylineGeoJsonById[f.id] = gjlayer;
-      this.polylinesById[f.id] = f as MapFeaturePolyline;
+      this.polylinesById[f.id] = f;
       if (f.condition) {
+        // ... se ha una condizione, registra la condizione
         this.shared.registerConditionEvaluator(
           f.condition as GameCondition, (result, play, scenario) => {
             let idx = this.layers.indexOf(this.polylineGeoJsonById[f.id]);
             if (!result && idx >= 0) {
+              // result della condition FALSE: Rimuove feature ${f.id} se presente
               this.layers.splice(idx, 1);
-            }
-            if (result && idx < 0) {
+            } else if (result && idx < 0) {
+              // result della condition TRUE: Aggiunge feature ${f.id} se assente
               this.layers.push(this.polylineGeoJsonById[f.id]);
             }
           }
         );
       }
-      //markers.push(gjlayer);
     });
-
-    //console.log("Markers!", markers);
     this.layers = markers;
-    // CONDITION intial evaluation
+    // intial evaluation of all conditions defined
     this.shared.evaluateAllConditions();
   }
 
