@@ -91,7 +91,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private startOrResumePlay() {
 
-    this.changeFavicon(this.shared.getGameResourceUrl(this.shared.scenario.favicon));
+    if (this.shared.scenario.favicon) {
+      this.changeFavicon(this.shared.getGameResourceUrl(this.shared.scenario.favicon));
+    }
     document.title = this.shared.scenario.name ? this.shared.scenario.name : this.shared.scenario.id;
 
     if (! this.shared.play) {
