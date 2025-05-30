@@ -31,6 +31,7 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
   }
   devs: ScannerQRCodeDevice[] = [];
   qrScanner: GameQrScanner;
+  deviceId: string;
 
   constructor(
     private ng: NgZone,
@@ -60,17 +61,46 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.action.isReady.subscribe(res => this.ng.run(() => this.qrReady(res)));
-    this.action.devices.subscribe(devs => this.devs = devs);
+    this.action.devices.subscribe(devs => this._initDevices(devs));
+  }
+
+  private _initDevices(devs: ScannerQRCodeDevice[]): void {
+    this.devs = devs;
+    const element = document.querySelector(".data-camera-template") as HTMLElement;
+    if (element) {
+      const container = element.parentElement ? element.parentElement : document.body;
+      this.devs.forEach(d => {
+        const onemore = element.cloneNode(true) as HTMLElement;
+        onemore.setAttribute("data-device-id", d.deviceId);
+        Optional.ifPresent(
+          onemore.querySelector(".data-device-label"), 
+          (child) => (child as HTMLElement).textContent = d.label
+        );
+        Optional.ifPresent(
+          onemore.querySelector(".data-device-kind"), 
+          (child) => (child as HTMLElement).textContent = d.kind
+        );
+        onemore.addEventListener('click', (event) => {
+          this.ng.run(() => {
+            const deviceid = (event.target as HTMLElement).getAttribute('data-device-id');
+            if (deviceid) {
+              this._doPlayDeviceById(deviceid);
+            }
+          });
+        });
+        container.appendChild(onemore);
+      });
+      element.remove();
+    }
   }
 
   qrReady(res: boolean) {
     console.log('qrReady', res);
     if (res) {
       this.action.start().subscribe((device: InputDeviceInfo) => {
-        console.log("using device", device);
-        let deviceId = this.camera.qrDeviceId();
+        const deviceId = this.camera.qrDeviceId();
         if (deviceId) {
-          this.action.playDevice(deviceId).subscribe(pd => console.log('pd', pd));
+          this._doPlayDeviceById(deviceId);
         }
       });
     }
@@ -88,10 +118,22 @@ export class QrScannerComponent implements OnInit, AfterViewInit {
   }
 
   toggleCamera(): void {
-    let index = this.action.deviceIndexActive >= (this.devs.length -1 ) ? 0 : this.action.deviceIndexActive+1 ;
-    let deviceId = this.devs[index].deviceId;
-    this.camera.saveQrDeviceId(deviceId);
-    this.action.playDevice(deviceId).subscribe(pd => console.log('pd', pd));
+    const deviceids = this.devs.map(d => d.deviceId);
+    if (this.deviceId) {
+      const nextindex = deviceids.indexOf(this.deviceId) +1;
+      if (nextindex >= 0) {
+        this._doPlayDeviceById(nextindex >= deviceids.length ? deviceids[0] : deviceids[nextindex]);
+      }
+    }
+  }
+
+  private _doPlayDeviceById(deviceId: string) {    
+    this.action.playDevice(deviceId).subscribe(pd => {
+      if (pd) {
+        this.deviceId = deviceId;
+        this.camera.saveQrDeviceId(this.deviceId);
+      }
+    });
   }
 
   cancelScan(): void {
