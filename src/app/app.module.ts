@@ -20,6 +20,7 @@ import { PlayNewGameComponent } from './components/pages/play-new-game/play-new-
 import { GameHtmlComponent } from './components/gui/game-html/game-html.component';
 import { NgxScannerQrcodeModule, LOAD_WASM } from 'ngx-scanner-qrcode';
 import { QrScannerComponent } from './components/pages/qr-scanner/qr-scanner.component';
+import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 
 LOAD_WASM().subscribe();
 
@@ -47,7 +48,9 @@ LOAD_WASM().subscribe();
     LeafletModule,
     NgxScannerQrcodeModule,
   ],
-  providers: [],
+  providers: [
+    { provide: LocationStrategy, useClass: PathLocationStrategy }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

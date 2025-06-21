@@ -74,10 +74,7 @@ export class SharedDataService {
     // LATER private analytics: GoogleAnalyticsService,
   ) { 
     // LATER this.analytics.init(environment.gaMeasurementId);
-    this.gameUrl = localStorage.getItem('ponte-virtuale-game-url');
-    if (this.gameUrl) {
-      //this.initGame();
-    }
+    this.gameUrl = localStorage.getItem('ponte-virtuale-game-url') || '/itinerari-ignaziani';
   }
   
   initGame() {
