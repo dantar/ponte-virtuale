@@ -49,7 +49,7 @@ LOAD_WASM().subscribe();
     NgxScannerQrcodeModule,
   ],
   providers: [
-    { provide: LocationStrategy, useClass: PathLocationStrategy }
+    // { provide: LocationStrategy, useClass: PathLocationStrategy }
   ],
   bootstrap: [AppComponent]
 })
